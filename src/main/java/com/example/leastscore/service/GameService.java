@@ -483,9 +483,9 @@ public class GameService {
   }
 
   private Card draw(GameState state) {
-    Card c = state.getDeck().pollFirst();
-    if (c == null) throw new IllegalStateException("deck is empty");
-    return c;
+    List<Card> deck = state.getDeck();
+    if (deck.isEmpty()) throw new IllegalStateException("deck is empty");
+    return deck.remove(0);
   }
 
   private int calculateScore(List<Card> hand) {

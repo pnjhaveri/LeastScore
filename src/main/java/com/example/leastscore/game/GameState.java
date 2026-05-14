@@ -1,9 +1,7 @@
 package com.example.leastscore.game;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -13,7 +11,7 @@ public class GameState {
   private List<PlayerState> players = new ArrayList<>();
   private List<PlayerState> eliminatedPlayers = new ArrayList<>();
   private int currentTurnIndex = 0;
-  private Deque<Card> deck = new ArrayDeque<>();
+  private List<Card> deck = new ArrayList<>();
   private Card openCard;
   private boolean ended = false;
   private Long declaredByUserId;
@@ -59,11 +57,11 @@ public class GameState {
     this.currentTurnIndex = currentTurnIndex;
   }
 
-  public Deque<Card> getDeck() {
+  public List<Card> getDeck() {
     return deck;
   }
 
-  public void setDeck(Deque<Card> deck) {
+  public void setDeck(List<Card> deck) {
     this.deck = deck;
   }
 

@@ -1,5 +1,6 @@
 package com.example.leastscore.game;
 
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
 public record Card(Suit suit, int rank) {
   public enum Suit {
     SPADES("♠"),
