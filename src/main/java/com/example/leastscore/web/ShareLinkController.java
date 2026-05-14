@@ -6,10 +6,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
 public class ShareLinkController {
-  @GetMapping("/r/{roomCode}")
+  @GetMapping({"/r/{roomCode}", "/room/{roomCode}"})
   public String room(@PathVariable String roomCode) {
-    // Let the frontend read the room code from the path.
-    return "forward:/room.html";
+    return "forward:/index.html";
   }
 }
 
