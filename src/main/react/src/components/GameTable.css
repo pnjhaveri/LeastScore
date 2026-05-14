@@ -1,0 +1,142 @@
+.game-table {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1a472a;
+  background-image: 
+    radial-gradient(ellipse at center, #1a472a 0%, #0d2818 100%);
+}
+
+.table-area {
+  flex: 1;
+  display: flex;
+  padding: 20px;
+  gap: 40px;
+}
+
+.deck-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  min-width: 200px;
+}
+
+.deck {
+  position: relative;
+  cursor: pointer;
+}
+
+.card-back {
+  width: 80px;
+  height: 112px;
+  background: linear-gradient(135deg, #1a237e 25%, #283593 25%, #283593 50%, #1a237e 50%, #1a237e 75%, #283593 75%);
+  background-size: 20px 20px;
+  border-radius: 8px;
+  border: 3px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+}
+
+.deck:hover .card-back {
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+.deck-count {
+  display: block;
+  text-align: center;
+  color: white;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.open-card {
+  cursor: pointer;
+}
+
+.open-card:hover .card {
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+.players-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.action-area {
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  align-items: center;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #4CAF50;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #45a049;
+}
+
+.btn-secondary {
+  background: #2196F3;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #1976D2;
+}
+
+.btn-declare {
+  background: #ff9800;
+  color: white;
+  animation: pulse-declare 1.5s infinite;
+}
+
+.btn-declare:hover:not(:disabled) {
+  background: #f57c00;
+}
+
+@keyframes pulse-declare {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.game-ended {
+  text-align: center;
+  color: white;
+}
+
+.game-ended h3 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+}

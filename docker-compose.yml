@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: leastscore
+      POSTGRES_USER: leastscore
+      POSTGRES_PASSWORD: leastscore
+    ports:
+      - "5432:5432"
+    volumes:
+      - leastscore_pgdata:/var/lib/postgresql/data
+
+volumes:
+  leastscore_pgdata:

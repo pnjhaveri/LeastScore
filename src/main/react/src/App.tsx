@@ -1,0 +1,339 @@
+import React, { useState, useEffect } from 'react';
+import { useGame } from './hooks/useGame';
+import { GameTable } from './components/GameTable';
+import { Lobby } from './components/Lobby';
+import { RoomInfo, GameState } from './types';
+import gameApi from './services/api';
+import gameSocket from './services/socket';
+import './App.css';
+
+function App() {
+  const [roomCode, setRoomCode] = useState<string | null>(null);
+  const [roomInfo, setRoomInfo] = useState<RoomInfo | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [username, setUsername] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [joiningRoom, setJoiningRoom] = useState<string | null>(null);
+  const [needsUsername, setNeedsUsername] = useState(false);
+
+  const { gameState, takeTurn, declare, startNextRound, refreshState } = useGame(
+    roomCode || '',
+    userId
+  );
+
+  useEffect(() => {
+    if (roomCode && userId) {
+      gameSocket.connect();
+      gameSocket.subscribeToRoom(roomCode);
+      gameSocket.on('room_state', (data: any) => {
+        if (data.players) {
+          setRoomInfo({
+            roomCode: data.roomCode,
+            status: data.status as RoomInfo['status'],
+            players: data.players.map((p: any) => ({
+              userId: p.userId,
+              username: p.username,
+              seatIndex: p.seatIndex,
+            })),
+          });
+        }
+      });
+      return () => {
+        gameSocket.off('room_state');
+        gameSocket.disconnect();
+      };
+    }
+  }, [roomCode, userId]);
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const session = await gameApi.getSession();
+        if (session.userId) {
+          setUserId(session.userId);
+          setUsername(session.username || `Player${session.userId}`);
+        } else {
+          setNeedsUsername(true);
+        }
+      } catch (err) {
+        console.error('Failed to get session:', err);
+        setNeedsUsername(true);
+      }
+    };
+    init();
+  }, []);
+
+  useEffect(() => {
+    const path = window.location.pathname;
+    const match = path.match(/\/room\/([A-Z0-9]+)/i);
+    if (match) {
+      setJoiningRoom(match[1].toUpperCase());
+    }
+  }, []);
+
+  useEffect(() => {
+    if (joiningRoom && userId) {
+      handleJoinRoom(joiningRoom);
+      setJoiningRoom(null);
+    }
+  }, [joiningRoom, userId]);
+
+  const handleCreateRoom = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const room = await gameApi.createRoom();
+      setRoomCode(room.roomCode);
+      setRoomInfo(room);
+      window.history.pushState({}, '', `/room/${room.roomCode}`);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleJoinRoom = async (code: string) => {
+    if (!userId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await gameApi.joinRoom(code);
+      const room = await gameApi.getRoom(code);
+      setRoomCode(room.roomCode);
+      setRoomInfo(room);
+      window.history.pushState({}, '', `/room/${room.roomCode}`);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStartGame = async () => {
+    if (!roomCode) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const state = await gameApi.startGame(roomCode);
+      setRoomInfo((prev) => (prev ? { ...prev, status: 'IN_GAME' } : null));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStartNextRound = async () => {
+    if (!roomCode) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await startNextRound();
+      setRoomInfo((prev) => (prev ? { ...prev, status: 'IN_GAME' } : null));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (needsUsername) {
+    return <UsernameSetup onComplete={(id, name) => {
+      setUserId(id);
+      setUsername(name);
+      setNeedsUsername(false);
+    }} />;
+  }
+
+  if (!userId) {
+    return (
+      <div className="app loading">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!roomCode) {
+    return (
+      <div className="app">
+        <div className="welcome-screen">
+          <h1>Least Score</h1>
+          <p>A card game where the lowest score wins!</p>
+
+          <div className="menu-buttons">
+            <button
+              className="btn btn-primary"
+              onClick={handleCreateRoom}
+              disabled={loading}
+            >
+              Create Room
+            </button>
+
+            <div className="join-form">
+              <input
+                type="text"
+                placeholder="Enter room code"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleJoinRoom(e.currentTarget.value.toUpperCase());
+                  }
+                }}
+              />
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  const input = document.querySelector('.join-form input') as HTMLInputElement;
+                  if (input?.value) {
+                    handleJoinRoom(input.value.toUpperCase());
+                  }
+                }}
+                disabled={loading}
+              >
+                Join
+              </button>
+            </div>
+          </div>
+
+          {error && <div className="error-message">{error}</div>}
+
+          <div className="rules-summary">
+            <h3>How to Play</h3>
+            <ul>
+              <li>2-6 players, 5 cards each</li>
+              <li>Discard pairs, two pairs, sequences (3-5), or flushes (5)</li>
+              <li>3-of-a-kind is NOT allowed</li>
+              <li>Draw from deck or discard pile, then discard one card</li>
+              <li>Declare when you think you have the lowest score</li>
+              <li>Scoring: A=1, 2-10=face, J/Q/K=10</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (roomInfo?.status === 'LOBBY') {
+    return (
+      <div className="app">
+        <Lobby
+          room={roomInfo}
+          userId={userId}
+          onStartGame={handleStartGame}
+          loading={loading}
+        />
+        {error && <div className="error-message">{error}</div>}
+      </div>
+    );
+  }
+
+  if (roomInfo?.status === 'ROUND_ENDED' || roomInfo?.status === 'GAME_OVER') {
+    return (
+      <div className="app">
+        <div className="round-ended">
+          <h2>Round Ended!</h2>
+          {gameState && (
+            <div className="scores">
+              <h3>Scores</h3>
+              {gameState.players
+                .sort((a, b) => a.total - b.total)
+                .map((player) => (
+                  <div key={player.userId} className="score-row">
+                    <span>{player.username}</span>
+                    <span>Hand: {player.total}</span>
+                    <span>Total: {player.cumulativeScore}</span>
+                  </div>
+                ))}
+            </div>
+          )}
+          {roomInfo.status === 'ROUND_ENDED' && (
+            <button
+              className="btn btn-primary"
+              onClick={handleStartNextRound}
+              disabled={loading}
+            >
+              {loading ? 'Starting...' : 'Start Next Round'}
+            </button>
+          )}
+          {roomInfo.status === 'GAME_OVER' && (
+            <div className="game-over">
+              <h3>Game Over!</h3>
+              <p>Thanks for playing!</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (gameState) {
+    return (
+      <div className="app">
+        <div className="game-header">
+          <span>Room: {roomCode}</span>
+          <span>Round: {gameState.roundNumber}</span>
+        </div>
+        <GameTable
+          gameState={gameState}
+          userId={userId}
+          onTakeTurn={takeTurn}
+          onDeclare={declare}
+          loading={loading}
+        />
+        {error && <div className="error-message">{error}</div>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="app loading">
+      <p>Loading game...</p>
+    </div>
+  );
+}
+
+function UsernameSetup({ onComplete }: { onComplete: (userId: number, username: string) => void }) {
+  const [username, setUsername] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username.trim()) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await gameApi.setUsername(username.trim());
+      onComplete(res.userId, res.username);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="app">
+      <div className="welcome-screen">
+        <h1>Least Score</h1>
+        <p>Enter your name to play!</p>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Enter your name"
+            disabled={loading}
+          />
+          {error && <p className="error">{error}</p>}
+          <button type="submit" className="btn btn-primary" disabled={loading || !username.trim()}>
+            {loading ? 'Starting...' : 'Play'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default App;

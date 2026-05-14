@@ -1,0 +1,57 @@
+.move-history {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 16px;
+}
+
+.move-history h4 {
+  color: white;
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: normal;
+  opacity: 0.7;
+}
+
+.moves-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.move-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.move-player {
+  font-weight: bold;
+  color: #4CAF50;
+  min-width: 80px;
+}
+
+.move-type {
+  color: #81C784;
+  min-width: 50px;
+}
+
+.move-discarded {
+  color: #FF5722;
+  min-width: 120px;
+}
+
+.move-arrow {
+  color: #9E9E9E;
+}
+
+.move-picked {
+  color: #FFC107;
+  font-weight: bold;
+  min-width: 80px;
+}

@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Least Score</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="title">Least Score</div>
+          <div class="pill">Lobby</div>
+        </div>
+        <div class="userbox">
+          <input class="input" style="max-width: 220px" id="username" placeholder="Username" />
+          <button class="btn primary small" id="setUsername">Save</button>
+          <span class="muted mono" id="whoami"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="h1">Create or join a room</div>
+      <div class="muted">Set your username once, then share the room link with 2–6 players.</div>
+
+      <div class="grid" style="margin-top: 16px">
+        <div class="card">
+          <div class="section">
+            <div class="row" style="justify-content: space-between">
+              <div>
+                <div style="font-weight: 700">New room</div>
+                <div class="muted" style="font-size: 14px; margin-top: 4px">Create a shareable room code.</div>
+              </div>
+              <button class="btn primary" id="createRoom">Create room</button>
+            </div>
+
+            <div class="toast" data-toast style="margin-top: 14px"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section">
+            <div style="font-weight: 700">Join room</div>
+            <div class="muted" style="font-size: 14px; margin-top: 4px">Paste a room code to enter.</div>
+            <div class="row" style="margin-top: 12px">
+              <input class="input mono" id="roomCode" placeholder="ABC123" style="max-width: 200px; text-transform: uppercase" />
+              <button class="btn" id="joinRoom">Join</button>
+            </div>
+            <div class="muted" style="margin-top: 10px; font-size: 13px">
+              Share link format: <span class="mono">/r/ABC123</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 16px">
+        <div class="section">
+          <div class="kpi">
+            <div class="item">
+              <div class="label">Current room</div>
+              <div class="value mono" id="roomLabel">—</div>
+            </div>
+            <div class="item">
+              <div class="label">Room link</div>
+              <div class="value mono" id="roomLink">—</div>
+            </div>
+            <div class="item">
+              <div class="label">Next step</div>
+              <div class="value">Open the room page</div>
+            </div>
+          </div>
+          <div class="row" style="margin-top: 12px">
+            <button class="btn primary" id="openRoom" disabled>Go to room</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/app.js"></script>
+    <script>
+      const { api, setToast, ensureSessionUserId, runAction } = window.LeastScore;
+      window.addEventListener('error', (e) => setToast(`UI error: ${e.message}`, 'err'));
+      window.addEventListener('unhandledrejection', (e) => setToast(`UI error: ${e.reason?.message || e.reason}`, 'err'));
+
+      const whoamiEl = document.getElementById('whoami');
+      const usernameEl = document.getElementById('username');
+      const roomCodeEl = document.getElementById('roomCode');
+      const roomLabelEl = document.getElementById('roomLabel');
+      const roomLinkEl = document.getElementById('roomLink');
+      const openRoomBtn = document.getElementById('openRoom');
+      const createRoomBtn = document.getElementById('createRoom');
+      const joinRoomBtn = document.getElementById('joinRoom');
+
+      let roomCode = '';
+      let hasUser = false;
+
+      async function refreshSession() {
+        const s = await api('/api/session');
+        whoamiEl.textContent = s.userId ? `userId=${s.userId}` : 'no user yet';
+        hasUser = Boolean(s.userId);
+        createRoomBtn.disabled = !hasUser;
+        joinRoomBtn.disabled = !hasUser;
+        openRoomBtn.disabled = !hasUser || !roomCode;
+        if (!hasUser) {
+          setToast('Create a username first (top right), then you can create or join a room.', 'err');
+        }
+      }
+
+      function setRoom(code) {
+        roomCode = (code || '').toUpperCase();
+        roomLabelEl.textContent = roomCode || '—';
+        roomLinkEl.textContent = roomCode ? `${location.origin}/r/${roomCode}` : '—';
+        openRoomBtn.disabled = !hasUser || !roomCode;
+      }
+
+      document.getElementById('setUsername').onclick = async (ev) => {
+        const btn = ev.currentTarget;
+        await runAction(
+          btn,
+          async () => {
+            const username = usernameEl.value;
+            await api('/api/session/username', { method: 'POST', body: JSON.stringify({ username }) });
+            await refreshSession();
+          },
+          { successMessage: 'Username saved. Now create or join a room.' },
+        );
+      };
+
+      createRoomBtn.onclick = async (ev) => {
+        const btn = ev.currentTarget;
+        const r = await runAction(btn, async () => {
+          const userId = await ensureSessionUserId();
+          if (!userId) throw new Error('Create a username first (top right), then create a room.');
+          return await api('/api/rooms', { method: 'POST' });
+        });
+        if (r?.roomCode) {
+          setRoom(r.roomCode);
+          setToast(`Room created: ${r.roomCode}. Share the link or open the room.`, 'ok');
+        }
+      };
+
+      joinRoomBtn.onclick = async (ev) => {
+        const btn = ev.currentTarget;
+        const code = roomCodeEl.value.trim().toUpperCase();
+        await runAction(btn, async () => {
+          const userId = await ensureSessionUserId();
+          if (!userId) throw new Error('Create a username first (top right), then join a room.');
+          if (!code) throw new Error('Enter a room code.');
+          await api(`/api/rooms/${code}/join`, { method: 'POST' });
+        }, { successMessage: `Joined room: ${code}.` });
+        if (code) setRoom(code);
+      };
+
+      openRoomBtn.onclick = () => {
+        if (!roomCode) return;
+        location.href = `/r/${roomCode}`;
+      };
+
+      refreshSession().catch(() => setToast('Server not reachable. Is the app running on http://localhost:8080 ?', 'err'));
+      setRoom('');
+    </script>
+  </body>
+</html>
+

@@ -1,0 +1,53 @@
+.round-history {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.round-history h4 {
+  color: white;
+  margin: 0 0 12px 0;
+  font-size: 14px;
+}
+
+.round-table {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.round-header,
+.round-row {
+  display: flex;
+  gap: 8px;
+}
+
+.round-col {
+  width: 50px;
+  color: #81C784;
+  font-weight: bold;
+}
+
+.player-col {
+  width: 80px;
+  color: white;
+  text-align: center;
+}
+
+.round-row.current {
+  background: rgba(76, 175, 80, 0.2);
+  border-radius: 4px;
+  padding: 4px 0;
+}
+
+.penalty {
+  color: #FF5722;
+  font-size: 10px;
+}
+
+.eliminated {
+  color: #f44336;
+  text-decoration: line-through;
+}

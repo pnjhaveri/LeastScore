@@ -1,0 +1,119 @@
+.lobby {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  text-align: center;
+  color: white;
+}
+
+.lobby h2 {
+  font-size: 32px;
+  margin-bottom: 24px;
+}
+
+.players-list {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.players-list h3 {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+}
+
+.player-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.player-seat {
+  color: #aaa;
+  font-size: 14px;
+}
+
+.player-name {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.host-badge {
+  background: #ff9800;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+.waiting-for-players {
+  color: #888;
+  padding: 20px;
+  font-style: italic;
+}
+
+.btn-start {
+  background: #4CAF50;
+  color: white;
+  padding: 16px 48px;
+  font-size: 20px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-start:hover:not(:disabled) {
+  background: #45a049;
+  transform: scale(1.05);
+}
+
+.btn-start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.share-link {
+  margin: 24px 0;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
+
+.share-link code {
+  display: block;
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  word-break: break-all;
+}
+
+.rules-info {
+  text-align: left;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.rules-info h4 {
+  margin: 0 0 8px 0;
+}
+
+.rules-info ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.rules-info li {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #ddd;
+}
