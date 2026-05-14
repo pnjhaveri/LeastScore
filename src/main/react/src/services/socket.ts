@@ -8,7 +8,8 @@ class GameSocket {
   connect() {
     if (this.stompClient?.connected) return;
 
-    const socket = new WebSocket('ws://localhost:8080/ws');
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const socket = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
     const Stomp = (window as any).Stomp;
     if (!Stomp) {
