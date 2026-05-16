@@ -109,6 +109,10 @@
   text-align: center;
 }
 
+.declare-hint {
+  color: #ff9800;
+}
+
 .action-buttons {
   display: flex;
   gap: 16px;

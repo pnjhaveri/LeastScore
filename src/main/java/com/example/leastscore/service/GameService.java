@@ -22,6 +22,9 @@ public class GameService {
   private static final int MAX_PLAYERS = 6;
   private static final int HAND_SIZE = 5;
   private static final int MOVE_HISTORY_LIMIT = 20;
+  private static final int SHOW_THRESHOLD = 10;
+  private static final int BAD_SHOW_PENALTY = 40;
+  private static final int ELIMINATION_THRESHOLD = 100;
 
   private final ObjectMapper objectMapper;
   private final UserRepository userRepository;
@@ -290,6 +293,11 @@ public class GameService {
     int idx = indexOfPlayer(state, userId);
     if (idx < 0) throw new IllegalStateException("not in game");
 
+    PlayerState caller = state.getPlayers().get(idx);
+    if (caller.getTotal() > SHOW_THRESHOLD) {
+      throw new IllegalStateException("Hand value must be " + SHOW_THRESHOLD + " or less to declare Show");
+    }
+
     state.setDeclaredByUserId(userId);
     state.setEnded(true);
     recordMove(game.getId(), userId, MoveType.DECLARE, "{}");
@@ -319,7 +327,6 @@ public class GameService {
     PlayerState declaredPlayer = state.getPlayers().stream()
         .filter(p -> p.getUserId() == declaredId)
         .findFirst().orElse(null);
-
     if (declaredPlayer == null) return;
 
     int declaredScore = declaredPlayer.getTotal();
@@ -328,24 +335,27 @@ public class GameService {
         .min()
         .orElse(declaredScore);
 
-    boolean declaredIsLowest = declaredScore == lowestScore;
+    boolean isBadShow = state.getPlayers().stream()
+        .anyMatch(p -> p.getUserId() != declaredId && p.getTotal() <= declaredScore);
 
     for (PlayerState p : state.getPlayers()) {
-      int penalty = 0;
-      if (declaredIsLowest) {
-        penalty = p.getTotal() - lowestScore;
-        if (penalty < 0) penalty = 0;
-      } else {
+      int points;
+      if (isBadShow) {
         if (p.getUserId() == declaredId) {
-          penalty = p.getTotal() - lowestScore;
-          if (penalty < 0) penalty = 0;
+          points = BAD_SHOW_PENALTY;
+        } else if (p.getTotal() == lowestScore) {
+          points = 0;
+        } else {
+          points = p.getTotal();
         }
+      } else {
+        points = p.getUserId() == declaredId ? 0 : p.getTotal();
       }
 
-      int newCumulativeScore = p.getCumulativeScore() + penalty;
+      int newCumulativeScore = p.getCumulativeScore() + points;
       p.setCumulativeScore(newCumulativeScore);
 
-      if (newCumulativeScore >= 100) {
+      if (newCumulativeScore >= ELIMINATION_THRESHOLD) {
         p.setEliminated(true);
         state.getEliminatedPlayers().add(p);
       }
