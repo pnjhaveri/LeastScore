@@ -237,13 +237,14 @@ function App() {
           <h2>{gameState.status === 'GAME_OVER' ? 'Game Over!' : 'Round Ended!'}</h2>
           <div className="scores">
             <h3>Scores</h3>
-            {gameState.players
-              .sort((a, b) => a.total - b.total)
-              .map((player) => (
-                <div key={player.userId} className="score-row">
-                  <span>{player.username}</span>
-                  <span>Hand: {player.total}</span>
-                  <span>Total: {player.cumulativeScore}</span>
+            {[...gameState.players, ...gameState.eliminatedPlayers]
+              .sort((a, b) => a.cumulativeScore - b.cumulativeScore)
+              .map((player, i) => (
+                <div key={player.userId} className={`score-row ${i === 0 ? 'winner' : ''} ${player.eliminated ? 'eliminated' : ''}`}>
+                  <span className="score-rank">#{i + 1}</span>
+                  <span className="score-name">{player.username}</span>
+                  <span className="score-hand">Hand: {player.total}</span>
+                  <span className="score-total">Total: {player.cumulativeScore}</span>
                 </div>
               ))}
           </div>
@@ -258,8 +259,38 @@ function App() {
           )}
           {gameState.status === 'GAME_OVER' && (
             <div className="game-over">
-              <h3>Game Over!</h3>
-              <p>Thanks for playing!</p>
+              <h3>Final Scores</h3>
+              {(() => {
+                const allPlayers = [...gameState.players, ...gameState.eliminatedPlayers].sort(
+                  (a, b) => a.cumulativeScore - b.cumulativeScore
+                );
+                const winner = allPlayers[0];
+                return (
+                  <>
+                    <div className="winner-banner">
+                      <span className="winner-emoji">🏆</span>
+                      <span className="winner-name">{winner.username}</span>
+                      <span className="winner-score">{winner.cumulativeScore} pts</span>
+                    </div>
+                    <div className="final-standings">
+                      {allPlayers.map((p, i) => (
+                        <div key={p.userId} className={`final-row ${i === 0 ? 'winner' : ''} ${p.eliminated ? 'eliminated' : ''}`}>
+                          <span className="final-rank">#{i + 1}</span>
+                          <span className="final-name">{p.username}</span>
+                          <span className="final-score">{p.cumulativeScore}</span>
+                          {p.eliminated && <span className="final-badge">ELIMINATED</span>}
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => { setRoomCode(null); window.history.pushState({}, '', '/'); }}
+                    >
+                      New Game
+                    </button>
+                  </>
+                );
+              })()}
             </div>
           )}
         </div>

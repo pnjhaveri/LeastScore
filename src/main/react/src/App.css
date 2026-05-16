@@ -180,11 +180,49 @@ body {
 
 .score-row {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+}
+
+.score-row.winner {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.score-row.eliminated {
+  opacity: 0.5;
+}
+
+.score-rank {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--text-muted);
+  min-width: 28px;
+}
+
+.score-row.winner .score-rank {
+  color: var(--accent-gold);
+}
+
+.score-name {
+  flex: 1;
+  text-align: left;
+}
+
+.score-hand {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.score-total {
+  font-weight: bold;
+  color: var(--accent-amber);
+  min-width: 50px;
+  text-align: right;
 }
 
 .game-over {
@@ -194,6 +232,93 @@ body {
 .game-over h3 {
   font-size: 28px;
   color: #ff9800;
+  margin-bottom: 16px;
+}
+
+.winner-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 193, 7, 0.08));
+  border: 2px solid var(--accent-gold);
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.winner-emoji {
+  font-size: 36px;
+}
+
+.winner-name {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--accent-gold);
+}
+
+.winner-score {
+  font-size: 18px;
+  color: var(--text-secondary);
+}
+
+.final-standings {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.final-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+
+.final-row.winner {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.final-row.eliminated {
+  opacity: 0.5;
+}
+
+.final-rank {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text-muted);
+  min-width: 30px;
+}
+
+.final-row.winner .final-rank {
+  color: var(--accent-gold);
+}
+
+.final-name {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.final-score {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--accent-amber);
+}
+
+.final-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: rgba(225, 112, 85, 0.2);
+  color: var(--accent-red);
+  border-radius: 4px;
+  font-weight: bold;
 }
 
 @media (max-width: 480px) {
