@@ -21,16 +21,16 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const gameApi = {
-  createRoom: () => api<RoomInfo>('/room', { method: 'POST' }),
+  createRoom: () => api<RoomInfo>('/rooms', { method: 'POST' }),
 
   joinRoom: (roomCode: string) =>
-    api<RoomInfo>(`/room/${roomCode}/join`, { method: 'POST' }),
+    api<RoomInfo>(`/rooms/${roomCode}/join`, { method: 'POST' }),
 
   getRoom: (roomCode: string) =>
-    api<RoomInfo>(`/room/${roomCode}`),
+    api<RoomInfo>(`/rooms/${roomCode}`),
 
   startGame: (roomCode: string) =>
-    api<GameState>(`/room/${roomCode}/start`, { method: 'POST' }),
+    api<GameState>(`/rooms/${roomCode}/start`, { method: 'POST' }),
 
   getGameState: (roomCode: string) =>
     api<GameState>(`/rooms/${roomCode}/state`),
@@ -45,7 +45,7 @@ export const gameApi = {
     api<GameState>(`/rooms/${roomCode}/declare`, { method: 'POST' }),
 
   startNextRound: (roomCode: string) =>
-    api<GameState>(`/room/${roomCode}/next-round`, { method: 'POST' }),
+    api<GameState>(`/rooms/${roomCode}/next-round`, { method: 'POST' }),
 
   getSession: () =>
     api<{ userId: number; username: string }>('/session'),
