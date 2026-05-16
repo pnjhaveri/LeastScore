@@ -514,6 +514,7 @@ public class GameService {
     pub.setDeclaredByUserId(state.getDeclaredByUserId());
     pub.setRoundNumber(state.getRoundNumber());
     pub.setDeckSize(state.getDeck().size());
+    pub.setTurnsInRound(state.getTurnsInRound());
 
     for (PlayerState p : state.getPlayers()) {
       PlayerState sp = new PlayerState(p.getUserId(), p.getUsername());
