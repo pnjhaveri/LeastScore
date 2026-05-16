@@ -321,6 +321,17 @@ body {
   font-weight: bold;
 }
 
+.game-over-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.game-over-buttons .btn {
+  min-width: 140px;
+}
+
 @media (max-width: 480px) {
   .welcome-screen {
     padding: 40px 16px;

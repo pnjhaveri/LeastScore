@@ -126,7 +126,7 @@ public class GameService {
     if (players.size() < MIN_PLAYERS) {
       throw new IllegalStateException("need at least " + MIN_PLAYERS + " players to start");
     }
-    if (!"LOBBY".equals(room.getStatus())) {
+    if (!"LOBBY".equals(room.getStatus()) && !"GAME_OVER".equals(room.getStatus())) {
       throw new IllegalStateException("room is not in lobby");
     }
 

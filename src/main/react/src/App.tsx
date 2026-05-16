@@ -282,12 +282,21 @@ function App() {
                         </div>
                       ))}
                     </div>
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => { setRoomCode(null); window.history.pushState({}, '', '/'); }}
-                    >
-                      New Game
-                    </button>
+                    <div className="game-over-buttons">
+                      <button
+                        className="btn btn-primary"
+                        onClick={handleStartGame}
+                        disabled={loading}
+                      >
+                        {loading ? 'Starting...' : 'Play Again'}
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => { setRoomCode(null); window.history.pushState({}, '', '/'); }}
+                      >
+                        New Room
+                      </button>
+                    </div>
                   </>
                 );
               })()}
