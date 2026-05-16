@@ -64,19 +64,10 @@ public class CardValidator {
   }
 
   private static ValidationResult validateSequence(List<Card> cards) {
-    if (!allSameSuit(cards)) {
-      return ValidationResult.invalid(cards.size() + " cards must be consecutive of the same suit");
-    }
     if (!isConsecutive(cards)) {
-      return ValidationResult.invalid(cards.size() + " cards must be consecutive ranks of the same suit");
+      return ValidationResult.invalid(cards.size() + " cards must be consecutive ranks");
     }
     return ValidationResult.ok(cards);
-  }
-
-  private static boolean allSameSuit(List<Card> cards) {
-    if (cards.isEmpty()) return false;
-    Card.Suit suit = cards.get(0).suit();
-    return cards.stream().allMatch(c -> c.suit() == suit);
   }
 
   private static boolean isConsecutive(List<Card> cards) {
