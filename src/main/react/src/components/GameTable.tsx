@@ -65,6 +65,8 @@ export function GameTable({
   const allPlayersGone = gameState.turnsInRound >= gameState.players.length;
   const canDeclare = isMyTurn && !gameState.ended && selectedSource === null && selectedIndices.length === 0 && myPlayer && myPlayer.hand.length === 5 && allPlayersGone && !loading;
   const moveHint = !selectedSource ? 'Select deck or open card' : 'Select cards to discard';
+  const dbg = `turnsInRound=${gameState.turnsInRound} players=${gameState.players.length} allGone=${allPlayersGone} isMyTurn=${isMyTurn} handLen=${myPlayer?.hand.length}`;
+  console.log(dbg);
 
   return (
     <div className="game-table">
@@ -105,6 +107,7 @@ export function GameTable({
         {isMyTurn && !gameState.ended && (
           <>
             <div className="action-hint">{moveHint}</div>
+            <div className="action-hint dbg">{dbg}</div>
             <div className="action-buttons">
               <button
                 className="btn btn-move"
