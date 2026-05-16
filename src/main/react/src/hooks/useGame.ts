@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { GameState, TurnRequest } from '../types';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Card, GameState, TurnRequest } from '../types';
 import gameApi from '../services/api';
 import gameSocket from '../services/socket';
 
@@ -7,15 +7,30 @@ export function useGame(roomCode: string, userId: number | null) {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const myHandRef = useRef<Card[]>([]);
+
+  const fetchAndMergeHand = useCallback(async (state: GameState) => {
+    if (!userId) return state;
+    try {
+      const { cards } = await gameApi.getHand(roomCode);
+      myHandRef.current = cards;
+      const myPlayer = state.players.find(p => p.userId === userId);
+      if (myPlayer) {
+        myPlayer.hand = cards;
+      }
+    } catch {}
+    return state;
+  }, [roomCode, userId]);
 
   const refreshState = useCallback(async () => {
     try {
       const state = await gameApi.getGameState(roomCode);
+      await fetchAndMergeHand(state);
       setGameState(state);
     } catch (err) {
       console.error('Failed to refresh game state:', err);
     }
-  }, [roomCode]);
+  }, [roomCode, fetchAndMergeHand]);
 
   useEffect(() => {
     if (!roomCode) return;
@@ -25,7 +40,8 @@ export function useGame(roomCode: string, userId: number | null) {
     gameSocket.connect();
     gameSocket.subscribeToRoom(roomCode);
 
-    gameSocket.on('game_state', (state: GameState) => {
+    gameSocket.on('game_state', async (state: GameState) => {
+      await fetchAndMergeHand(state);
       setGameState(state);
     });
 
@@ -33,7 +49,7 @@ export function useGame(roomCode: string, userId: number | null) {
       gameSocket.off('game_state');
       gameSocket.disconnect();
     };
-  }, [roomCode, refreshState]);
+  }, [roomCode, refreshState, fetchAndMergeHand]);
 
   const takeTurn = useCallback(
     async (request: TurnRequest) => {
@@ -41,6 +57,7 @@ export function useGame(roomCode: string, userId: number | null) {
       setError(null);
       try {
         const newState = await gameApi.takeTurn(roomCode, request);
+        await fetchAndMergeHand(newState);
         setGameState(newState);
         return newState;
       } catch (err: any) {
@@ -50,7 +67,7 @@ export function useGame(roomCode: string, userId: number | null) {
         setLoading(false);
       }
     },
-    [roomCode]
+    [roomCode, fetchAndMergeHand]
   );
 
   const declare = useCallback(async () => {
@@ -58,6 +75,7 @@ export function useGame(roomCode: string, userId: number | null) {
     setError(null);
     try {
       const newState = await gameApi.declare(roomCode);
+      await fetchAndMergeHand(newState);
       setGameState(newState);
       return newState;
     } catch (err: any) {
@@ -66,13 +84,14 @@ export function useGame(roomCode: string, userId: number | null) {
     } finally {
       setLoading(false);
     }
-  }, [roomCode]);
+  }, [roomCode, fetchAndMergeHand]);
 
   const startNextRound = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const newState = await gameApi.startNextRound(roomCode);
+      await fetchAndMergeHand(newState);
       setGameState(newState);
       return newState;
     } catch (err: any) {
@@ -81,7 +100,7 @@ export function useGame(roomCode: string, userId: number | null) {
     } finally {
       setLoading(false);
     }
-  }, [roomCode]);
+  }, [roomCode, fetchAndMergeHand]);
 
   return {
     gameState,

@@ -16,6 +16,7 @@ public class GameState {
   private boolean ended = false;
   private Long declaredByUserId;
   private int roundNumber = 1;
+  private int deckSize;
 
   public String getRoomCode() {
     return roomCode;
@@ -95,6 +96,14 @@ public class GameState {
 
   public void setRoundNumber(int roundNumber) {
     this.roundNumber = roundNumber;
+  }
+
+  public int getDeckSize() {
+    return deckSize;
+  }
+
+  public void setDeckSize(int deckSize) {
+    this.deckSize = deckSize;
   }
 }
 

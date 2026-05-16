@@ -1,5 +1,6 @@
 package com.example.leastscore.web;
 
+import com.example.leastscore.game.Card;
 import com.example.leastscore.db.MoveEntity;
 import com.example.leastscore.db.RoomEntity;
 import com.example.leastscore.realtime.RoomBroadcaster;
@@ -9,6 +10,7 @@ import com.example.leastscore.service.IdentityService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,8 +36,9 @@ public class RoomController {
 
   @PostMapping
   public ResponseEntity<?> createRoom(HttpSession session) {
-    requireUser(session);
+    long userId = requireUser(session);
     RoomEntity room = gameService.createRoom();
+    gameService.joinRoom(room.getRoomCode(), userId);
     GameService.RoomInfo roomInfo = gameService.getRoomInfo(room.getRoomCode());
     return ResponseEntity.ok(roomInfo);
   }
@@ -66,8 +69,8 @@ public class RoomController {
 
   @GetMapping("/{roomCode}/state")
   public ResponseEntity<?> state(@PathVariable @NotBlank String roomCode, HttpSession session) {
-    requireUser(session);
-    return ResponseEntity.ok(gameService.getState(roomCode));
+    long userId = requireUser(session);
+    return ResponseEntity.ok(gameService.sanitizeForPublic(gameService.getState(roomCode), userId));
   }
 
   @PostMapping("/{roomCode}/turn")
@@ -76,7 +79,7 @@ public class RoomController {
     long userId = requireUser(session);
     var state = gameService.takeTurn(roomCode, userId, req);
     broadcaster.broadcastState(roomCode, state);
-    return ResponseEntity.ok(state);
+    return ResponseEntity.ok(gameService.sanitizeForPublic(state, userId));
   }
 
   @PostMapping("/{roomCode}/declare")
@@ -84,7 +87,7 @@ public class RoomController {
     long userId = requireUser(session);
     var state = gameService.declare(roomCode, userId);
     broadcaster.broadcastState(roomCode, state);
-    return ResponseEntity.ok(state);
+    return ResponseEntity.ok(gameService.sanitizeForPublic(state, userId));
   }
 
   @PostMapping("/{roomCode}/next-round")
@@ -92,7 +95,14 @@ public class RoomController {
     long userId = requireUser(session);
     var state = gameService.startNextRound(roomCode, userId);
     broadcaster.broadcastState(roomCode, state);
-    return ResponseEntity.ok(state);
+    return ResponseEntity.ok(gameService.sanitizeForPublic(state, userId));
+  }
+
+  @GetMapping("/{roomCode}/hand")
+  public ResponseEntity<?> hand(@PathVariable @NotBlank String roomCode, HttpSession session) {
+    long userId = requireUser(session);
+    List<Card> cards = gameService.getPlayerHand(roomCode, userId);
+    return ResponseEntity.ok(Map.of("cards", cards));
   }
 
   @GetMapping("/{roomCode}/moves")

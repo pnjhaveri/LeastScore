@@ -16,6 +16,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [joiningRoom, setJoiningRoom] = useState<string | null>(null);
   const [needsUsername, setNeedsUsername] = useState(false);
+  const [initializing, setInitializing] = useState(true);
 
   const { gameState, takeTurn, declare, startNextRound, refreshState } = useGame(
     roomCode || '',
@@ -79,6 +80,13 @@ function App() {
     }
   }, [joiningRoom, userId]);
 
+  useEffect(() => {
+    if (needsUsername || (joiningRoom === null && userId !== null)) {
+      const t = setTimeout(() => setInitializing(false), 100);
+      return () => clearTimeout(t);
+    }
+  }, [needsUsername, userId, joiningRoom]);
+
   const handleCreateRoom = async () => {
     setLoading(true);
     setError(null);
@@ -138,6 +146,14 @@ function App() {
       setLoading(false);
     }
   };
+
+  if (initializing) {
+    return (
+      <div className="app loading">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   if (needsUsername) {
     return <UsernameSetup onComplete={(id, name) => {

@@ -61,3 +61,23 @@
 .card-center {
   font-size: 36px;
 }
+
+.card-back {
+  background: #1a5276;
+  color: white;
+  border-color: #154360;
+}
+
+.card-back:hover {
+  transform: none;
+}
+
+.card-back-inner {
+  font-size: 24px;
+  font-weight: bold;
+  opacity: 0.6;
+}
+
+.card.small .card-back-inner {
+  font-size: 16px;
+}

@@ -10,6 +10,7 @@ export interface PlayerState {
   total: number;
   cumulativeScore: number;
   eliminated: boolean;
+  handSize?: number;
 }
 
 export interface GameState {
@@ -18,7 +19,7 @@ export interface GameState {
   players: PlayerState[];
   eliminatedPlayers: PlayerState[];
   currentTurnIndex: number;
-  deck: Card[];
+  deckSize: number;
   openCard: Card | null;
   ended: boolean;
   declaredByUserId: number | null;

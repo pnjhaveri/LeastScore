@@ -12,6 +12,7 @@ public class PlayerState {
   private int total;
   private int cumulativeScore = 0;
   private boolean eliminated = false;
+  private int handSize;
 
   public PlayerState() {}
 
@@ -66,6 +67,14 @@ public class PlayerState {
 
   public void setEliminated(boolean eliminated) {
     this.eliminated = eliminated;
+  }
+
+  public int getHandSize() {
+    return handSize;
+  }
+
+  public void setHandSize(int handSize) {
+    this.handSize = handSize;
   }
 }
 

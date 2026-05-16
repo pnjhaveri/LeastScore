@@ -517,6 +517,57 @@ public class GameService {
     }
   }
 
+  public GameState sanitizeForPublic(GameState state) {
+    return sanitizeForPublic(state, -1);
+  }
+
+  public GameState sanitizeForPublic(GameState state, long viewerUserId) {
+    GameState pub = new GameState();
+    pub.setRoomCode(state.getRoomCode());
+    pub.setGameId(state.getGameId());
+    pub.setCurrentTurnIndex(state.getCurrentTurnIndex());
+    pub.setOpenCard(state.getOpenCard());
+    pub.setEnded(state.isEnded());
+    pub.setDeclaredByUserId(state.getDeclaredByUserId());
+    pub.setRoundNumber(state.getRoundNumber());
+    pub.setDeckSize(state.getDeck().size());
+
+    for (PlayerState p : state.getPlayers()) {
+      PlayerState sp = new PlayerState(p.getUserId(), p.getUsername());
+      sp.setTotal(p.getTotal());
+      sp.setCumulativeScore(p.getCumulativeScore());
+      sp.setEliminated(p.isEliminated());
+      sp.setHandSize(p.getHand().size());
+      if (p.getUserId() == viewerUserId) {
+        sp.setHand(new ArrayList<>(p.getHand()));
+      }
+      pub.getPlayers().add(sp);
+    }
+    for (PlayerState p : state.getEliminatedPlayers()) {
+      PlayerState sp = new PlayerState(p.getUserId(), p.getUsername());
+      sp.setTotal(p.getTotal());
+      sp.setCumulativeScore(p.getCumulativeScore());
+      sp.setEliminated(p.isEliminated());
+      sp.setHandSize(p.getHand().size());
+      pub.getEliminatedPlayers().add(sp);
+    }
+    return pub;
+  }
+
+  @Transactional(readOnly = true)
+  public List<Card> getPlayerHand(String roomCode, long userId) {
+    RoomEntity room = roomRepository.findByRoomCode(roomCode)
+        .orElseThrow(() -> new IllegalArgumentException("room not found"));
+    var gameOpt = gameRepository.findFirstByRoomIdOrderByStartedAtDesc(room.getId());
+    if (gameOpt.isEmpty()) return List.of();
+    GameState state = readState(gameOpt.get().getStateJson());
+    return state.getPlayers().stream()
+        .filter(p -> p.getUserId() == userId)
+        .findFirst()
+        .map(PlayerState::getHand)
+        .orElse(List.of());
+  }
+
   public enum TurnAction {
     TAKE_OPEN_CARD,
     DRAW_FROM_DECK,

@@ -90,7 +90,7 @@ export function GameTable({
         <div className="deck-area">
           <div className="deck" onClick={() => handleDraw('deck')}>
             <div className="card-back">Deck</div>
-            <span className="deck-count">{gameState.deck.length} cards</span>
+            <span className="deck-count">{gameState.deckSize} cards</span>
           </div>
           {gameState.openCard && (
             <div className="open-card" onClick={() => handleDraw('open')}>

@@ -11,6 +11,14 @@ interface PlayerHandProps {
   onSelectCard: (index: number) => void;
 }
 
+function CardBack({ small }: { small?: boolean }) {
+  return (
+    <div className={`card card-back ${small ? 'small' : ''}`}>
+      <div className="card-back-inner">?</div>
+    </div>
+  );
+}
+
 export function PlayerHand({
   player,
   isCurrentPlayer,
@@ -18,6 +26,9 @@ export function PlayerHand({
   selectedIndices,
   onSelectCard,
 }: PlayerHandProps) {
+  const displayHand = isMyHand ? player.hand : [];
+  const cardCount = isMyHand ? player.hand.length : (player.handSize || 0);
+
   return (
     <div className={`player-hand ${isCurrentPlayer ? 'current-turn' : ''}`}>
       <div className="player-info">
@@ -32,14 +43,18 @@ export function PlayerHand({
         {player.eliminated && <span className="eliminated">ELIMINATED</span>}
       </div>
       <div className="hand-cards">
-        {player.hand.map((card, index) => (
-          <Card
-            key={`${card.suit}-${card.rank}-${index}`}
-            card={card}
-            selected={selectedIndices.includes(index)}
-            onClick={isMyHand ? () => onSelectCard(index) : undefined}
-          />
-        ))}
+        {isMyHand
+          ? displayHand.map((card, index) => (
+              <Card
+                key={`${card.suit}-${card.rank}-${index}`}
+                card={card}
+                selected={selectedIndices.includes(index)}
+                onClick={() => onSelectCard(index)}
+              />
+            ))
+          : Array.from({ length: cardCount }, (_, i) => (
+              <CardBack key={i} small />
+            ))}
       </div>
     </div>
   );

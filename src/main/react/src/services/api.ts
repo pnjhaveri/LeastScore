@@ -1,4 +1,4 @@
-import { GameState, RoomInfo, TurnRequest } from '../types';
+import { Card, GameState, RoomInfo, TurnRequest } from '../types';
 
 const API_BASE = '/api';
 
@@ -46,6 +46,9 @@ export const gameApi = {
 
   startNextRound: (roomCode: string) =>
     api<GameState>(`/rooms/${roomCode}/next-round`, { method: 'POST' }),
+
+  getHand: (roomCode: string) =>
+    api<{ cards: Card[] }>(`/rooms/${roomCode}/hand`),
 
   getSession: () =>
     api<{ userId: number; username: string }>('/session'),
