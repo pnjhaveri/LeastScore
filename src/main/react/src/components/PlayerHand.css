@@ -1,13 +1,13 @@
 .player-hand {
   padding: 12px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--bg-panel);
   border-radius: 8px;
   margin: 8px 0;
 }
 
 .player-hand.current-turn {
-  background: rgba(76, 175, 80, 0.3);
-  border: 2px solid #4CAF50;
+  background: rgba(0, 184, 148, 0.1);
+  border: 2px solid var(--accent-green);
 }
 
 .player-info {
@@ -24,7 +24,7 @@
 }
 
 .turn-indicator {
-  color: #4CAF50;
+  color: var(--accent-green);
   margin-left: 8px;
   animation: pulse 1s infinite;
 }
@@ -36,22 +36,22 @@
 
 .player-score {
   font-size: 14px;
-  color: #ddd;
+  color: var(--text-secondary);
 }
 
 .cumulative-score {
   font-size: 14px;
-  color: #ff9800;
+  color: var(--accent-amber);
 }
 
 .eliminated {
-  color: #f44336;
+  color: var(--accent-red);
   font-weight: bold;
 }
 
 .card-count {
   font-size: 13px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .hand-cards {

@@ -1,7 +1,7 @@
 .card {
   width: 80px;
   height: 112px;
-  background: white;
+  background: var(--bg-card);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   position: relative;
@@ -11,7 +11,7 @@
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   user-select: none;
-  border: 2px solid #ccc;
+  border: 2px solid var(--border-card);
 }
 
 .card:hover {
@@ -20,8 +20,8 @@
 }
 
 .card.selected {
-  border-color: #ffd700;
-  box-shadow: 0 0 0 3px #ffd700, 0 0 16px rgba(255, 215, 0, 0.4);
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px var(--accent-gold), 0 0 16px rgba(255, 215, 0, 0.4);
   transform: translateY(-8px);
 }
 
@@ -64,9 +64,9 @@
 }
 
 .card-back {
-  background: #1a5276;
-  color: white;
-  border-color: #154360;
+  background: var(--bg-card-back);
+  color: var(--accent-green);
+  border-color: rgba(0, 184, 148, 0.3);
 }
 
 .card-back:hover {

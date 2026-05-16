@@ -2,9 +2,8 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #1a472a;
-  background-image: 
-    radial-gradient(ellipse at center, #1a472a 0%, #0d2818 100%);
+  background: var(--bg-deep);
+  background-image: radial-gradient(ellipse at center, #1a3a2a 0%, var(--bg-deep) 100%);
 }
 
 .table-area {
@@ -29,9 +28,9 @@
 }
 
 .deck-area.source-selected {
-  border-color: #ffd700;
+  border-color: var(--accent-gold);
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-  background: rgba(255, 215, 0, 0.1);
+  background: rgba(255, 215, 0, 0.08);
 }
 
 .deck-area:hover {
@@ -46,14 +45,14 @@
 .card-back {
   width: 80px;
   height: 112px;
-  background: linear-gradient(135deg, #1a237e 25%, #283593 25%, #283593 50%, #1a237e 50%, #1a237e 75%, #283593 75%);
+  background: linear-gradient(135deg, #1a3a2a 25%, #0f2b1a 25%, #0f2b1a 50%, #1a3a2a 50%, #1a3a2a 75%, #0f2b1a 75%);
   background-size: 20px 20px;
   border-radius: 8px;
-  border: 3px solid white;
+  border: 3px solid var(--accent-green);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--accent-green);
   font-weight: bold;
 }
 
@@ -81,8 +80,8 @@
 }
 
 .open-card.source-selected {
-  box-shadow: 0 0 0 3px #ffd700, 0 0 20px rgba(255, 215, 0, 0.5);
-  background: rgba(255, 215, 0, 0.15);
+  box-shadow: 0 0 0 3px var(--accent-gold), 0 0 20px rgba(255, 215, 0, 0.5);
+  background: rgba(255, 215, 0, 0.08);
 }
 
 .players-area {
@@ -105,7 +104,7 @@
 
 .action-hint {
   font-size: 13px;
-  color: #aaa;
+  color: var(--text-secondary);
   text-align: center;
 }
 
@@ -114,7 +113,8 @@
   gap: 16px;
 }
 
-.btn {
+.btn-move,
+.btn-declare {
   padding: 14px 32px;
   font-size: 18px;
   font-weight: bold;
@@ -125,43 +125,44 @@
   letter-spacing: 0.5px;
 }
 
-.btn:disabled {
+.btn-move:disabled,
+.btn-declare:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
 .btn-move {
-  background: linear-gradient(135deg, #43a047, #66bb6a);
+  background: var(--accent-green);
   color: white;
   min-width: 120px;
 }
 
 .btn-move:hover:not(:disabled) {
-  background: linear-gradient(135deg, #388e3c, #43a047);
+  background: var(--accent-green-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(67, 160, 71, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 184, 148, 0.4);
 }
 
 .btn-declare {
-  background: linear-gradient(135deg, #ef6c00, #ff9800);
-  color: white;
+  background: var(--accent-amber);
+  color: #1a1a2e;
   min-width: 120px;
   animation: pulse-declare 2s infinite;
 }
 
 .btn-declare:hover:not(:disabled) {
-  background: linear-gradient(135deg, #e65100, #ef6c00);
+  background: var(--accent-amber-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 108, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(253, 203, 110, 0.4);
 }
 
 @keyframes pulse-declare {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
-  50% { transform: scale(1.03); box-shadow: 0 0 20px 5px rgba(255, 152, 0, 0.2); }
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(253, 203, 110, 0.4); }
+  50% { transform: scale(1.03); box-shadow: 0 0 20px 5px rgba(253, 203, 110, 0.2); }
 }
 
 .waiting-turn {
-  color: #aaa;
+  color: var(--text-secondary);
   font-size: 16px;
 }
 
