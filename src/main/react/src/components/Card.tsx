@@ -5,7 +5,7 @@ import './Card.css';
 interface CardProps {
   card: CardType;
   selected?: boolean;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   small?: boolean;
 }
 

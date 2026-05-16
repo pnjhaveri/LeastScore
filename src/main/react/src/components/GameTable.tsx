@@ -29,11 +29,12 @@ export function GameTable({
 
   const canSelectCards = isMyTurn && !gameState.ended;
 
-  const handleCardClick = (index: number) => {
+  const handleCardClick = (index: number, ctrlKey?: boolean) => {
     if (!canSelectCards) return;
     setSelectedIndices((prev) => {
       if (prev.includes(index)) return prev.filter((i) => i !== index);
-      return [...prev, index];
+      if (ctrlKey || prev.length >= 2) return [...prev, index];
+      return [index];
     });
   };
 
@@ -62,8 +63,7 @@ export function GameTable({
   };
 
   const canMove = isMyTurn && !gameState.ended && selectedSource !== null && selectedIndices.length > 0 && !loading;
-  const allPlayersGone = gameState.turnsInRound >= gameState.players.length;
-  const canDeclare = isMyTurn && !gameState.ended && selectedSource === null && selectedIndices.length === 0 && myPlayer && myPlayer.hand.length === 5 && allPlayersGone && !loading;
+  const canDeclare = isMyTurn && !gameState.ended && selectedSource === null && selectedIndices.length === 0 && myPlayer && myPlayer.hand.length === 5 && gameState.turnsInRound >= 1 && !loading;
   const moveHint = !selectedSource ? 'Select deck or open card' : 'Select cards to discard';
 
   const recentMoves = gameState.moves ? gameState.moves.slice(-15).reverse() : [];

@@ -8,7 +8,7 @@ interface PlayerHandProps {
   isCurrentPlayer: boolean;
   isMyHand: boolean;
   selectedIndices: number[];
-  onSelectCard: (index: number) => void;
+  onSelectCard: (index: number, ctrlKey?: boolean) => void;
 }
 
 function CardBack({ small }: { small?: boolean }) {
@@ -51,10 +51,10 @@ export function PlayerHand({
         {isMyHand
           ? displayHand.map((card, index) => (
               <Card
-                key={`${card.suit}-${card.rank}-${index}`}
+                key={`${card.suit}-${card.rank}`}
                 card={card}
                 selected={selectedIndices.includes(index)}
-                onClick={() => onSelectCard(index)}
+                onClick={(e) => onSelectCard(index, e.ctrlKey || e.metaKey)}
               />
             ))
           : Array.from({ length: cardCount }, (_, i) => (
