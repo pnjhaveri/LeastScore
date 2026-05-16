@@ -44,108 +44,79 @@ public class CardValidator {
 
     int count = cards.size();
 
-    if (count == 2) {
+    if (count == 1) {
+      return ValidationResult.ok(cards);
+    } else if (count == 2) {
       return validatePair(cards);
     } else if (count == 3) {
-      return validateThreeCardCombo(cards);
+      return validateSequence(cards, 3);
     } else if (count == 4) {
-      return validateFourCardCombo(cards);
+      return validateFourCardSet(cards);
     } else if (count == 5) {
-      return validateFiveCardCombo(cards);
+      return validateFiveCardSet(cards);
     } else {
-      return ValidationResult.invalid("Can only discard 2-5 cards");
+      return ValidationResult.invalid("Can discard up to 5 cards at once");
     }
   }
 
   private static ValidationResult validatePair(List<Card> cards) {
-    if (cards.size() != 2) {
-      return ValidationResult.invalid("Pair requires exactly 2 cards");
-    }
     if (cards.get(0).rank() == cards.get(1).rank()) {
       return ValidationResult.ok(cards);
     }
-    return ValidationResult.invalid("Must be a pair (same rank)");
+    return ValidationResult.invalid("Two cards must be a pair (same rank)");
   }
 
-  private static ValidationResult validateThreeCardCombo(List<Card> cards) {
+  private static ValidationResult validateSequence(List<Card> cards, int expectedCount) {
+    if (!allSameSuit(cards)) {
+      return ValidationResult.invalid(expectedCount + " cards must be consecutive cards of the same suit");
+    }
+    if (!isConsecutive(cards)) {
+      return ValidationResult.invalid(expectedCount + " cards must be consecutive ranks of the same suit");
+    }
+    return ValidationResult.ok(cards);
+  }
+
+  private static ValidationResult validateFourCardSet(List<Card> cards) {
     Map<Integer, Long> rankCounts = cards.stream()
         .collect(Collectors.groupingBy(Card::rank, Collectors.counting()));
 
-    long pairs = rankCounts.values().stream().filter(c -> c == 2).count();
-
-    if (pairs == 1) {
+    if (rankCounts.size() == 1 && rankCounts.values().iterator().next() == 4) {
       return ValidationResult.ok(cards);
     }
 
-    List<Card> sorted = new ArrayList<>(cards);
-    sorted.sort(Comparator.comparingInt(Card::rank));
-    if (isConsecutive(sorted)) {
-      return ValidationResult.ok(cards);
-    }
-
-    return ValidationResult.invalid(
-        "Three cards must be a pair or a sequence of 3 consecutive ranks. 3-of-a-kind is NOT allowed.");
-  }
-
-  private static ValidationResult validateFourCardCombo(List<Card> cards) {
-    Map<Integer, Long> rankCounts = cards.stream()
-        .collect(Collectors.groupingBy(Card::rank, Collectors.counting()));
-
     long pairs = rankCounts.values().stream().filter(c -> c == 2).count();
-
     if (pairs == 2) {
       return ValidationResult.ok(cards);
     }
 
-    return ValidationResult.invalid("Four cards must be two pairs");
+    return ValidationResult.invalid("Four cards must be two pairs or four of a kind (same rank)");
   }
 
-  private static ValidationResult validateFiveCardCombo(List<Card> cards) {
-    Map<Integer, Long> rankCounts = cards.stream()
-        .collect(Collectors.groupingBy(Card::rank, Collectors.counting()));
-
-    long pairs = rankCounts.values().stream().filter(c -> c == 2).count();
-
-    if (pairs == 1) {
+  private static ValidationResult validateFiveCardSet(List<Card> cards) {
+    if (allSameSuit(cards)) {
+      if (isConsecutive(cards)) {
+        return ValidationResult.ok(cards);
+      }
       return ValidationResult.ok(cards);
     }
 
-    if (pairs == 2) {
-      return ValidationResult.ok(cards);
-    }
+    return ValidationResult.invalid("Five cards must be consecutive cards of the same suit, or a flush (5 same suit)");
+  }
 
-    List<Card> sorted = new ArrayList<>(cards);
-    sorted.sort(Comparator.comparingInt(Card::rank));
-
-    if (isConsecutive(sorted)) {
-      return ValidationResult.ok(cards);
-    }
-
-    if (isFlush(cards)) {
-      return ValidationResult.ok(cards);
-    }
-
-    return ValidationResult.invalid(
-        "Five cards must be: a pair, two pairs, a sequence of 5, or a flush of 5");
+  private static boolean allSameSuit(List<Card> cards) {
+    if (cards.isEmpty()) return false;
+    Card.Suit suit = cards.get(0).suit();
+    return cards.stream().allMatch(c -> c.suit() == suit);
   }
 
   private static boolean isConsecutive(List<Card> cards) {
-    if (cards.size() < 3) return false;
-
+    if (cards.size() < 2) return false;
     List<Integer> ranks = cards.stream().map(Card::rank).sorted().toList();
-
     for (int i = 0; i < ranks.size() - 1; i++) {
       if (ranks.get(i + 1) != ranks.get(i) + 1) {
         return false;
       }
     }
     return true;
-  }
-
-  private static boolean isFlush(List<Card> cards) {
-    if (cards.size() != 5) return false;
-
-    Card.Suit firstSuit = cards.get(0).suit();
-    return cards.stream().allMatch(c -> c.suit() == firstSuit);
   }
 }
