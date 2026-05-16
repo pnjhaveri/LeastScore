@@ -24,6 +24,7 @@ export interface GameState {
   ended: boolean;
   declaredByUserId: number | null;
   roundNumber: number;
+  turnsInRound: number;
 }
 
 export interface RoomInfo {

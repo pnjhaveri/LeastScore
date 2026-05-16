@@ -17,6 +17,15 @@ public class GameState {
   private Long declaredByUserId;
   private int roundNumber = 1;
   private int deckSize;
+  private int turnsInRound;
+
+  public int getTurnsInRound() {
+    return turnsInRound;
+  }
+
+  public void setTurnsInRound(int turnsInRound) {
+    this.turnsInRound = turnsInRound;
+  }
 
   public String getRoomCode() {
     return roomCode;

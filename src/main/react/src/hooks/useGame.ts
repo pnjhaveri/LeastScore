@@ -45,7 +45,12 @@ export function useGame(roomCode: string, userId: number | null) {
       setGameState(state);
     });
 
+    const pollInterval = setInterval(() => {
+      refreshState();
+    }, 5000);
+
     return () => {
+      clearInterval(pollInterval);
       gameSocket.off('game_state');
       gameSocket.disconnect();
     };

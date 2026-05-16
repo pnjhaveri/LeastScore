@@ -62,17 +62,18 @@ export function GameTable({
   };
 
   const canMove = isMyTurn && !gameState.ended && selectedSource !== null && selectedIndices.length > 0 && !loading;
-  const canDeclare = isMyTurn && !gameState.ended && selectedSource === null && selectedIndices.length === 0 && myPlayer && myPlayer.hand.length === 5 && myPlayer.total <= 10 && !loading;
+  const allPlayersGone = gameState.turnsInRound >= gameState.players.length;
+  const canDeclare = isMyTurn && !gameState.ended && selectedSource === null && selectedIndices.length === 0 && myPlayer && myPlayer.hand.length === 5 && myPlayer.total <= 10 && allPlayersGone && !loading;
   const moveHint = !selectedSource ? 'Select deck or open card' : 'Select cards to discard';
 
   return (
     <div className="game-table">
       <div className="table-area">
-        <div
-          className={`deck-area ${selectedSource === 'deck' ? 'source-selected' : ''}`}
-          onClick={() => handleSourceClick('deck')}
-        >
-          <div className="deck">
+        <div className="deck-area">
+          <div
+            className={`deck ${selectedSource === 'deck' ? 'source-selected' : ''}`}
+            onClick={() => handleSourceClick('deck')}
+          >
             <div className="card-back">Deck</div>
             <span className="deck-count">{gameState.deckSize} left</span>
           </div>

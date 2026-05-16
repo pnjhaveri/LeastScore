@@ -150,6 +150,7 @@ public class GameService {
 
     state.setOpenCard(draw(state));
     state.setCurrentTurnIndex(0);
+    state.setTurnsInRound(0);
 
     var game = new GameEntity();
     game.setRoomId(room.getId());
@@ -272,6 +273,7 @@ public class GameService {
     recordMove(game.getId(), userId, MoveType.DISCARD,
         "{\"discarded\":[" + discardedNames + "],\"kept\":\"" + picked.getDisplayName() + "\"}");
 
+    state.setTurnsInRound(state.getTurnsInRound() + 1);
     int next = (state.getCurrentTurnIndex() + 1) % state.getPlayers().size();
     state.setCurrentTurnIndex(next);
     game.setCurrentTurnUserId(state.getPlayers().get(next).getUserId());
@@ -416,6 +418,7 @@ public class GameService {
 
     state.setOpenCard(draw(state));
     state.setCurrentTurnIndex(0);
+    state.setTurnsInRound(0);
 
     var game = new GameEntity();
     game.setRoomId(room.getId());
