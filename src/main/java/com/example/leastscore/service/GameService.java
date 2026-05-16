@@ -22,7 +22,6 @@ public class GameService {
   private static final int MAX_PLAYERS = 6;
   private static final int HAND_SIZE = 5;
   private static final int MOVE_HISTORY_LIMIT = 20;
-  private static final int SHOW_THRESHOLD = 10;
   private static final int BAD_SHOW_PENALTY = 40;
   private static final int ELIMINATION_THRESHOLD = 100;
 
@@ -294,11 +293,6 @@ public class GameService {
 
     int idx = indexOfPlayer(state, userId);
     if (idx < 0) throw new IllegalStateException("not in game");
-
-    PlayerState caller = state.getPlayers().get(idx);
-    if (caller.getTotal() > SHOW_THRESHOLD) {
-      throw new IllegalStateException("Hand value must be " + SHOW_THRESHOLD + " or less to declare Show");
-    }
 
     state.setDeclaredByUserId(userId);
     state.setEnded(true);

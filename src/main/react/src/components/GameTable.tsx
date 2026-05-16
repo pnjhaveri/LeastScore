@@ -63,7 +63,7 @@ export function GameTable({
 
   const canMove = isMyTurn && !gameState.ended && selectedSource !== null && selectedIndices.length > 0 && !loading;
   const allPlayersGone = gameState.turnsInRound >= gameState.players.length;
-  const canDeclare = isMyTurn && !gameState.ended && selectedSource === null && selectedIndices.length === 0 && myPlayer && myPlayer.hand.length === 5 && myPlayer.total <= 10 && allPlayersGone && !loading;
+  const canDeclare = isMyTurn && !gameState.ended && selectedSource === null && selectedIndices.length === 0 && myPlayer && myPlayer.hand.length === 5 && allPlayersGone && !loading;
   const moveHint = !selectedSource ? 'Select deck or open card' : 'Select cards to discard';
 
   return (

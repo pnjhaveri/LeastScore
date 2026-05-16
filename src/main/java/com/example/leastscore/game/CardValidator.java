@@ -1,7 +1,6 @@
 package com.example.leastscore.game;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class CardValidator {
 
@@ -49,13 +48,11 @@ public class CardValidator {
     } else if (count == 2) {
       return validatePair(cards);
     } else if (count == 3) {
-      return validateSequence(cards, 3);
-    } else if (count == 4) {
-      return validateFourCardSet(cards);
+      return validateSequence(cards);
     } else if (count == 5) {
-      return validateFiveCardSet(cards);
+      return validateSequence(cards);
     } else {
-      return ValidationResult.invalid("Can discard up to 5 cards at once");
+      return ValidationResult.invalid("Can discard 1 card, a pair (2), or a sequence of 3/5 consecutive same-suit cards");
     }
   }
 
@@ -66,41 +63,14 @@ public class CardValidator {
     return ValidationResult.invalid("Two cards must be a pair (same rank)");
   }
 
-  private static ValidationResult validateSequence(List<Card> cards, int expectedCount) {
+  private static ValidationResult validateSequence(List<Card> cards) {
     if (!allSameSuit(cards)) {
-      return ValidationResult.invalid(expectedCount + " cards must be consecutive cards of the same suit");
+      return ValidationResult.invalid(cards.size() + " cards must be consecutive of the same suit");
     }
     if (!isConsecutive(cards)) {
-      return ValidationResult.invalid(expectedCount + " cards must be consecutive ranks of the same suit");
+      return ValidationResult.invalid(cards.size() + " cards must be consecutive ranks of the same suit");
     }
     return ValidationResult.ok(cards);
-  }
-
-  private static ValidationResult validateFourCardSet(List<Card> cards) {
-    Map<Integer, Long> rankCounts = cards.stream()
-        .collect(Collectors.groupingBy(Card::rank, Collectors.counting()));
-
-    if (rankCounts.size() == 1 && rankCounts.values().iterator().next() == 4) {
-      return ValidationResult.ok(cards);
-    }
-
-    long pairs = rankCounts.values().stream().filter(c -> c == 2).count();
-    if (pairs == 2) {
-      return ValidationResult.ok(cards);
-    }
-
-    return ValidationResult.invalid("Four cards must be two pairs or four of a kind (same rank)");
-  }
-
-  private static ValidationResult validateFiveCardSet(List<Card> cards) {
-    if (allSameSuit(cards)) {
-      if (isConsecutive(cards)) {
-        return ValidationResult.ok(cards);
-      }
-      return ValidationResult.ok(cards);
-    }
-
-    return ValidationResult.invalid("Five cards must be consecutive cards of the same suit, or a flush (5 same suit)");
   }
 
   private static boolean allSameSuit(List<Card> cards) {
