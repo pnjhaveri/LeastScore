@@ -529,7 +529,55 @@ public class GameService {
       sp.setHandSize(p.getHand().size());
       pub.getEliminatedPlayers().add(sp);
     }
+
+    List<GameState.MoveEntry> moveEntries = new ArrayList<>();
+    if (state.getGameId() > 0) {
+      List<MoveEntity> recentMoves = moveRepository.findRecentByGameId(state.getGameId(), PageRequest.of(0, MOVE_HISTORY_LIMIT));
+      Map<Long, String> usernameCache = new HashMap<>();
+      for (PlayerState p : state.getPlayers()) {
+        usernameCache.put(p.getUserId(), p.getUsername());
+      }
+      for (PlayerState p : state.getEliminatedPlayers()) {
+        usernameCache.put(p.getUserId(), p.getUsername());
+      }
+      for (MoveEntity me : recentMoves) {
+        String username = usernameCache.get(me.getUserId());
+        if (username == null) {
+          username = userRepository.findById(me.getUserId()).map(UserEntity::getUsername).orElse("?");
+        }
+        moveEntries.add(new GameState.MoveEntry(username, me.getMoveType(), formatMoveSummary(me)));
+      }
+    }
+    pub.setMoves(moveEntries);
+
     return pub;
+  }
+
+  private String formatMoveSummary(MoveEntity me) {
+    try {
+      Map<String, Object> payload = objectMapper.readValue(me.getPayloadJson(),
+          new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+      return switch (me.getMoveType()) {
+        case "DRAW_FROM_DECK" -> "Drew from deck";
+        case "TAKE_OPEN_CARD" -> {
+          String card = (String) payload.get("card");
+          yield "Took " + (card != null ? card : "open card");
+        }
+        case "DISCARD" -> {
+          @SuppressWarnings("unchecked")
+          List<String> discarded = (List<String>) payload.get("discarded");
+          String kept = (String) payload.get("kept");
+          String disc = discarded != null ? String.join(", ", discarded) : "?";
+          yield "Discarded " + disc + ", kept " + (kept != null ? kept : "?");
+        }
+        case "DECLARE" -> "Declared!";
+        case "START" -> "Game started";
+        case "END_GAME" -> "Round ended";
+        default -> me.getMoveType();
+      };
+    } catch (Exception e) {
+      return me.getMoveType();
+    }
   }
 
   @Transactional(readOnly = true)

@@ -18,6 +18,28 @@ public class GameState {
   private int roundNumber = 1;
   private int deckSize;
   private int turnsInRound;
+  private List<MoveEntry> moves = new ArrayList<>();
+
+  public static class MoveEntry {
+    private String username;
+    private String moveType;
+    private String summary;
+
+    public MoveEntry() {}
+
+    public MoveEntry(String username, String moveType, String summary) {
+      this.username = username;
+      this.moveType = moveType;
+      this.summary = summary;
+    }
+
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    public String getMoveType() { return moveType; }
+    public void setMoveType(String moveType) { this.moveType = moveType; }
+    public String getSummary() { return summary; }
+    public void setSummary(String summary) { this.summary = summary; }
+  }
 
   public int getTurnsInRound() {
     return turnsInRound;
@@ -26,6 +48,9 @@ public class GameState {
   public void setTurnsInRound(int turnsInRound) {
     this.turnsInRound = turnsInRound;
   }
+
+  public List<MoveEntry> getMoves() { return moves; }
+  public void setMoves(List<MoveEntry> moves) { this.moves = moves; }
 
   public String getRoomCode() {
     return roomCode;

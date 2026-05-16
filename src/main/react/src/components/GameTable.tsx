@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from './Card';
 import { PlayerHand } from './PlayerHand';
-import { GameState, TurnRequest, TurnAction } from '../types';
+import { GameState, TurnRequest, TurnAction, MoveEntry } from '../types';
 import './GameTable.css';
 
 interface GameTableProps {
@@ -65,8 +65,8 @@ export function GameTable({
   const allPlayersGone = gameState.turnsInRound >= gameState.players.length;
   const canDeclare = isMyTurn && !gameState.ended && selectedSource === null && selectedIndices.length === 0 && myPlayer && myPlayer.hand.length === 5 && allPlayersGone && !loading;
   const moveHint = !selectedSource ? 'Select deck or open card' : 'Select cards to discard';
-  const dbg = `turnsInRound=${gameState.turnsInRound} players=${gameState.players.length} allGone=${allPlayersGone} isMyTurn=${isMyTurn} handLen=${myPlayer?.hand.length}`;
-  console.log(dbg);
+
+  const recentMoves = gameState.moves ? gameState.moves.slice(-15).reverse() : [];
 
   return (
     <div className="game-table">
@@ -90,16 +90,18 @@ export function GameTable({
         </div>
 
         <div className="players-area">
-          {gameState.players.map((player, index) => (
-            <PlayerHand
-              key={player.userId}
-              player={player}
-              isCurrentPlayer={index === currentPlayerIndex}
-              isMyHand={player.userId === userId}
-              selectedIndices={player.userId === userId ? selectedIndices : []}
-              onSelectCard={handleCardClick}
-            />
-          ))}
+          {gameState.players
+            .filter((player) => player.userId === userId)
+            .map((player, index) => (
+              <PlayerHand
+                key={player.userId}
+                player={player}
+                isCurrentPlayer={player.userId === currentPlayer?.userId}
+                isMyHand={true}
+                selectedIndices={selectedIndices}
+                onSelectCard={handleCardClick}
+              />
+            ))}
         </div>
       </div>
 
@@ -107,7 +109,6 @@ export function GameTable({
         {isMyTurn && !gameState.ended && (
           <>
             <div className="action-hint">{moveHint}</div>
-            <div className="action-hint dbg">{dbg}</div>
             <div className="action-buttons">
               <button
                 className="btn btn-move"
@@ -144,6 +145,21 @@ export function GameTable({
             )}
           </div>
         )}
+
+        <div className="move-history">
+          <h4>Recent Moves</h4>
+          <div className="moves-list">
+            {recentMoves.length === 0 && (
+              <span className="move-empty">No moves yet</span>
+            )}
+            {recentMoves.map((move: MoveEntry, index: number) => (
+              <div key={index} className="move-item">
+                <span className="move-player">{move.username}:</span>
+                <span className="move-summary">{move.summary}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

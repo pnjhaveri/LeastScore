@@ -13,6 +13,12 @@ export interface PlayerState {
   handSize?: number;
 }
 
+export interface MoveEntry {
+  username: string;
+  moveType: string;
+  summary: string;
+}
+
 export interface GameState {
   roomCode: string;
   gameId: number;
@@ -25,6 +31,7 @@ export interface GameState {
   declaredByUserId: number | null;
   roundNumber: number;
   turnsInRound: number;
+  moves: MoveEntry[];
 }
 
 export interface RoomInfo {
