@@ -60,3 +60,29 @@
   flex-wrap: wrap;
   justify-content: center;
 }
+
+@media (max-width: 480px) {
+  .player-hand {
+    padding: 8px;
+    margin: 4px 0;
+  }
+  .player-info {
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .player-name {
+    font-size: 13px;
+  }
+  .player-score {
+    font-size: 12px;
+  }
+  .cumulative-score {
+    font-size: 12px;
+  }
+  .card-count {
+    font-size: 11px;
+  }
+  .hand-cards {
+    gap: 3px;
+  }
+}

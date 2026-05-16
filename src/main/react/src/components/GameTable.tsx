@@ -63,9 +63,6 @@ export function GameTable({
 
   const canMove = isMyTurn && !gameState.ended && selectedSource !== null && selectedIndices.length > 0 && !loading;
   const canDeclare = isMyTurn && !gameState.ended && selectedSource === null && selectedIndices.length === 0 && myPlayer && myPlayer.hand.length === 5 && myPlayer.total <= 10 && !loading;
-  const declareHint = myPlayer && myPlayer.total > 10
-    ? `Reduce hand to 10 or less to Declare (current: ${myPlayer.total})`
-    : 'Declare Show if you have the lowest hand';
   const moveHint = !selectedSource ? 'Select deck or open card' : 'Select cards to discard';
 
   return (
@@ -107,7 +104,6 @@ export function GameTable({
         {isMyTurn && !gameState.ended && (
           <>
             <div className="action-hint">{moveHint}</div>
-            <div className="action-hint declare-hint">{declareHint}</div>
             <div className="action-buttons">
               <button
                 className="btn btn-move"

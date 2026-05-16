@@ -82,3 +82,47 @@
 .card.small .card-back-inner {
   font-size: 16px;
 }
+
+@media (max-width: 480px) {
+  .card {
+    width: 56px;
+    height: 78px;
+  }
+  .card.small {
+    width: 36px;
+    height: 50px;
+  }
+  .card-corner {
+    font-size: 10px;
+  }
+  .card-center {
+    font-size: 24px;
+  }
+  .card.small .card-back-inner {
+    font-size: 12px;
+  }
+  .card-back-inner {
+    font-size: 16px;
+  }
+  .card:hover,
+  .card.selected {
+    transform: translateY(-4px);
+  }
+}
+
+@media (max-width: 360px) {
+  .card {
+    width: 44px;
+    height: 62px;
+  }
+  .card.small {
+    width: 30px;
+    height: 42px;
+  }
+  .card-center {
+    font-size: 18px;
+  }
+  .card-corner {
+    font-size: 8px;
+  }
+}
