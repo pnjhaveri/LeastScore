@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useGame } from './hooks/useGame';
 import { GameTable } from './components/GameTable';
 import { Lobby } from './components/Lobby';
-import { RoomInfo, GameState } from './types';
+import { RoomInfo } from './types';
 import gameApi from './services/api';
 import gameSocket from './services/socket';
 import './App.css';
@@ -124,7 +124,8 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const state = await gameApi.startGame(roomCode);
+      await gameApi.startGame(roomCode);
+      await refreshState();
       setRoomInfo((prev) => (prev ? { ...prev, status: 'IN_GAME' } : null));
     } catch (err: any) {
       setError(err.message);
@@ -139,7 +140,6 @@ function App() {
     setError(null);
     try {
       await startNextRound();
-      setRoomInfo((prev) => (prev ? { ...prev, status: 'IN_GAME' } : null));
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -230,6 +230,43 @@ function App() {
     );
   }
 
+  if (gameState && (gameState.status === 'ROUND_ENDED' || gameState.status === 'GAME_OVER')) {
+    return (
+      <div className="app">
+        <div className="round-ended">
+          <h2>{gameState.status === 'GAME_OVER' ? 'Game Over!' : 'Round Ended!'}</h2>
+          <div className="scores">
+            <h3>Scores</h3>
+            {gameState.players
+              .sort((a, b) => a.total - b.total)
+              .map((player) => (
+                <div key={player.userId} className="score-row">
+                  <span>{player.username}</span>
+                  <span>Hand: {player.total}</span>
+                  <span>Total: {player.cumulativeScore}</span>
+                </div>
+              ))}
+          </div>
+          {gameState.status === 'ROUND_ENDED' && (
+            <button
+              className="btn btn-primary"
+              onClick={handleStartNextRound}
+              disabled={loading}
+            >
+              {loading ? 'Starting...' : 'Start Next Round'}
+            </button>
+          )}
+          {gameState.status === 'GAME_OVER' && (
+            <div className="game-over">
+              <h3>Game Over!</h3>
+              <p>Thanks for playing!</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (roomInfo?.status === 'LOBBY') {
     return (
       <div className="app">
@@ -240,45 +277,6 @@ function App() {
           loading={loading}
         />
         {error && <div className="error-message">{error}</div>}
-      </div>
-    );
-  }
-
-  if (roomInfo?.status === 'ROUND_ENDED' || roomInfo?.status === 'GAME_OVER') {
-    return (
-      <div className="app">
-        <div className="round-ended">
-          <h2>Round Ended!</h2>
-          {gameState && (
-            <div className="scores">
-              <h3>Scores</h3>
-              {gameState.players
-                .sort((a, b) => a.total - b.total)
-                .map((player) => (
-                  <div key={player.userId} className="score-row">
-                    <span>{player.username}</span>
-                    <span>Hand: {player.total}</span>
-                    <span>Total: {player.cumulativeScore}</span>
-                  </div>
-                ))}
-            </div>
-          )}
-          {roomInfo.status === 'ROUND_ENDED' && (
-            <button
-              className="btn btn-primary"
-              onClick={handleStartNextRound}
-              disabled={loading}
-            >
-              {loading ? 'Starting...' : 'Start Next Round'}
-            </button>
-          )}
-          {roomInfo.status === 'GAME_OVER' && (
-            <div className="game-over">
-              <h3>Game Over!</h3>
-              <p>Thanks for playing!</p>
-            </div>
-          )}
-        </div>
       </div>
     );
   }
