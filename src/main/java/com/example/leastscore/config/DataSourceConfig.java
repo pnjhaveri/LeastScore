@@ -5,13 +5,10 @@ import org.springframework.boot.jdbc.autoconfigure.DataSourceProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-
 @Configuration
 public class DataSourceConfig {
 
     @Bean
-    @Profile("production")
     public DataSource dataSource(DataSourceProperties properties) {
         var url = System.getenv("DATABASE_URL");
         if (url != null && !url.isBlank() && !url.startsWith("jdbc")) {
