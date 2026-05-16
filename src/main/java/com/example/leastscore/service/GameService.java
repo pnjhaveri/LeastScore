@@ -218,86 +218,56 @@ public class GameService {
 
     PlayerState player = state.getPlayers().get(playerIndex);
 
-    if (req.action() == TurnAction.DISCARD_COMBO) {
-      List<Integer> indices = req.discardIndices();
-      if (indices == null || indices.isEmpty()) {
-        throw new IllegalArgumentException("discardIndices required for discard");
-      }
-
-      List<Card> cardsToDiscard = new ArrayList<>();
-      for (Integer idx : indices) {
-        if (idx < 0 || idx >= player.getHand().size()) {
-          throw new IllegalArgumentException("invalid discard index: " + idx);
-        }
-        cardsToDiscard.add(player.getHand().get(idx));
-      }
-
-      CardValidator.ValidationResult validation = CardValidator.validateDiscard(cardsToDiscard);
-      if (!validation.isValid()) {
-        throw new IllegalArgumentException(validation.getError());
-      }
-
-      Card openCard = state.getOpenCard();
-      if (openCard == null) {
-        throw new IllegalArgumentException("you must draw a card first before discarding");
-      }
-
-      for (int i = indices.size() - 1; i >= 0; i--) {
-        int idx = indices.get(i);
-        player.getHand().remove(idx);
-      }
-
-      player.getHand().add(openCard);
-      state.setOpenCard(cardsToDiscard.get(0));
-      player.setTotal(calculateScore(player.getHand()));
-
-      String movePayload = "{\"discarded\":["
-          + cardsToDiscard.stream().map(c -> "\"" + c.getDisplayName() + "\"").reduce((a, b) -> a + "," + b).orElse("")
-          + "],\"action\":\"DISCARD_COMBO\"}";
-      recordMove(game.getId(), userId, MoveType.DISCARD, movePayload);
-
-      int next = (state.getCurrentTurnIndex() + 1) % state.getPlayers().size();
-      state.setCurrentTurnIndex(next);
-      game.setCurrentTurnUserId(state.getPlayers().get(next).getUserId());
-
-      game.setStateJson(writeState(state));
-      gameRepository.save(game);
-      upsertScores(game.getId(), state);
-      return state;
+    List<Integer> indices = req.discardIndices();
+    if (indices == null || indices.isEmpty()) {
+      throw new IllegalArgumentException("discardIndices required");
     }
 
     Card picked;
-    if (req.action() == TurnAction.TAKE_OPEN_CARD) {
+    boolean isCombo = false;
+
+    if (req.action() == TurnAction.DRAW_FROM_DECK) {
+      picked = draw(state);
+      recordMove(game.getId(), userId, MoveType.DRAW_FROM_DECK, "{\"card\":\"" + picked.getDisplayName() + "\"}");
+    } else if (req.action() == TurnAction.TAKE_OPEN_CARD || req.action() == TurnAction.DISCARD_COMBO) {
       picked = state.getOpenCard();
       if (picked == null) {
         throw new IllegalArgumentException("no open card to take");
       }
+      isCombo = req.action() == TurnAction.DISCARD_COMBO;
       recordMove(game.getId(), userId, MoveType.TAKE_OPEN_CARD, "{\"card\":\"" + picked.getDisplayName() + "\"}");
-    } else if (req.action() == TurnAction.DRAW_FROM_DECK) {
-      picked = draw(state);
-      recordMove(game.getId(), userId, MoveType.DRAW_FROM_DECK, "{\"card\":\"" + picked.getDisplayName() + "\"}");
     } else {
-      throw new IllegalArgumentException("Invalid action. Must DRAW or TAKE before discarding.");
+      throw new IllegalArgumentException("Invalid action");
     }
 
-    if (req.discardIndices() == null || req.discardIndices().isEmpty() || req.discardIndices().get(0) == null) {
-      throw new IllegalArgumentException("discardIndex is required after drawing");
+    List<Card> cardsToDiscard = new ArrayList<>();
+    for (Integer idx : indices) {
+      if (idx < 0 || idx >= player.getHand().size()) {
+        throw new IllegalArgumentException("invalid discard index: " + idx);
+      }
+      cardsToDiscard.add(player.getHand().get(idx));
     }
 
-    int discardIndex = req.discardIndices().get(0);
-    if (discardIndex < 0 || discardIndex >= player.getHand().size()) {
-      throw new IllegalArgumentException("discardIndex must be in range 0.." + (player.getHand().size() - 1));
+    if (cardsToDiscard.size() > 1 || isCombo) {
+      CardValidator.ValidationResult validation = CardValidator.validateDiscard(cardsToDiscard);
+      if (!validation.isValid()) {
+        throw new IllegalArgumentException(validation.getError());
+      }
     }
 
-    Card discarded = player.getHand().set(discardIndex, picked);
-    state.setOpenCard(discarded);
+    for (int i = indices.size() - 1; i >= 0; i--) {
+      player.getHand().remove((int) indices.get(i));
+    }
+
+    player.getHand().add(picked);
+    state.setOpenCard(cardsToDiscard.get(0));
     player.setTotal(calculateScore(player.getHand()));
 
-    recordMove(
-        game.getId(),
-        userId,
-        MoveType.DISCARD,
-        "{\"discarded\":\"" + discarded.getDisplayName() + "\",\"kept\":\"" + picked.getDisplayName() + "\",\"index\":" + discardIndex + "}");
+    String discardedNames = cardsToDiscard.stream()
+        .map(c -> "\"" + c.getDisplayName() + "\"")
+        .reduce((a, b) -> a + "," + b).orElse("");
+    recordMove(game.getId(), userId, MoveType.DISCARD,
+        "{\"discarded\":[" + discardedNames + "],\"kept\":\"" + picked.getDisplayName() + "\"}");
 
     int next = (state.getCurrentTurnIndex() + 1) % state.getPlayers().size();
     state.setCurrentTurnIndex(next);

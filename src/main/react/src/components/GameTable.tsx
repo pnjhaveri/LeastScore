@@ -20,80 +20,67 @@ export function GameTable({
   loading,
 }: GameTableProps) {
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
-  const [phase, setPhase] = useState<'draw' | 'discard'>('draw');
-  const [drawSource, setDrawSource] = useState<'deck' | 'open' | null>(null);
+  const [selectedSource, setSelectedSource] = useState<'deck' | 'open' | null>(null);
 
   const currentPlayerIndex = gameState.currentTurnIndex;
   const currentPlayer = gameState.players[currentPlayerIndex];
   const isMyTurn = currentPlayer?.userId === userId;
   const myPlayer = gameState.players.find((p) => p.userId === userId);
 
-  const handleCardClick = (index: number) => {
-    if (!isMyTurn || phase !== 'discard') return;
+  const canSelectCards = isMyTurn && !gameState.ended;
 
+  const handleCardClick = (index: number) => {
+    if (!canSelectCards) return;
     setSelectedIndices((prev) => {
-      if (prev.includes(index)) {
-        return prev.filter((i) => i !== index);
-      }
+      if (prev.includes(index)) return prev.filter((i) => i !== index);
       return [...prev, index];
     });
   };
 
-  const handleDraw = async (source: 'deck' | 'open') => {
-    if (!isMyTurn || phase !== 'draw') return;
-
-    setDrawSource(source);
-    setPhase('discard');
+  const handleSourceClick = (source: 'deck' | 'open') => {
+    if (!isMyTurn || gameState.ended) return;
+    setSelectedSource((prev) => (prev === source ? null : source));
   };
 
-  const handleDiscard = async () => {
-    if (!isMyTurn || phase !== 'discard' || !myPlayer) return;
-
+  const handleMove = async () => {
+    if (!isMyTurn || !selectedSource || selectedIndices.length === 0 || !myPlayer) return;
     try {
       const action: TurnAction =
-        drawSource === 'open' ? 'TAKE_OPEN_CARD' : 'DRAW_FROM_DECK';
-
-      if (selectedIndices.length === 1) {
-        await onTakeTurn({
-          action,
-          discardIndices: selectedIndices,
-        });
-      } else if (selectedIndices.length >= 2) {
-        await onTakeTurn({
-          action: 'DISCARD_COMBO',
-          discardIndices: selectedIndices,
-        });
-      }
-
+        selectedSource === 'open' ? 'TAKE_OPEN_CARD' : 'DRAW_FROM_DECK';
+      await onTakeTurn({ action, discardIndices: selectedIndices });
       setSelectedIndices([]);
-      setPhase('draw');
-      setDrawSource(null);
+      setSelectedSource(null);
     } catch (err) {
-      console.error('Turn failed:', err);
+      console.error('Move failed:', err);
     }
   };
 
   const handleDeclare = async () => {
-    if (!isMyTurn) return;
+    if (!isMyTurn || gameState.ended) return;
+    if (selectedIndices.length > 0 || selectedSource !== null) return;
     await onDeclare();
   };
 
-  const canDeclare =
-    isMyTurn &&
-    myPlayer &&
-    myPlayer.hand.length === 5 &&
-    !gameState.ended;
+  const canMove = isMyTurn && !gameState.ended && selectedSource !== null && selectedIndices.length > 0 && !loading;
+  const canDeclare = isMyTurn && !gameState.ended && selectedSource === null && selectedIndices.length === 0 && myPlayer && myPlayer.hand.length === 5 && !loading;
+  const moveHint = !selectedSource ? 'Select deck or open card' : 'Select cards to discard';
 
   return (
     <div className="game-table">
       <div className="table-area">
-        <div className="deck-area">
-          <div className="deck" onClick={() => handleDraw('deck')}>
+        <div
+          className={`deck-area ${selectedSource === 'deck' ? 'source-selected' : ''}`}
+          onClick={() => handleSourceClick('deck')}
+        >
+          <div className="deck">
             <div className="card-back">Deck</div>
-            <span className="deck-count">{gameState.deckSize} cards</span>
+            <span className="deck-count">{gameState.deckSize} left</span>
           </div>
           {gameState.openCard && (
-            <div className="open-card" onClick={() => handleDraw('open')}>
+            <div
+              className={`open-card ${selectedSource === 'open' ? 'source-selected' : ''}`}
+              onClick={(e) => { e.stopPropagation(); handleSourceClick('open'); }}
+            >
               <Card card={gameState.openCard} />
             </div>
           )}
@@ -116,60 +103,39 @@ export function GameTable({
       <div className="action-area">
         {isMyTurn && !gameState.ended && (
           <>
-            {phase === 'draw' && (
-              <div className="action-buttons">
-                <button
-                  className="btn btn-primary"
-                  onClick={() => handleDraw('deck')}
-                  disabled={loading}
-                >
-                  Draw from Deck
-                </button>
-                {gameState.openCard && (
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => handleDraw('open')}
-                    disabled={loading}
-                  >
-                    Take Open Card
-                  </button>
-                )}
-              </div>
-            )}
-
-            {phase === 'discard' && (
-              <div className="action-buttons">
-                <button
-                  className="btn btn-primary"
-                  onClick={handleDiscard}
-                  disabled={loading || selectedIndices.length === 0}
-                >
-                  Discard {selectedIndices.length} card
-                  {selectedIndices.length !== 1 ? 's' : ''}
-                </button>
-              </div>
-            )}
-
-            {canDeclare && (
+            <div className="action-hint">{moveHint}</div>
+            <div className="action-buttons">
+              <button
+                className="btn btn-move"
+                onClick={handleMove}
+                disabled={!canMove}
+              >
+                Move
+              </button>
               <button
                 className="btn btn-declare"
                 onClick={handleDeclare}
-                disabled={loading}
+                disabled={!canDeclare}
               >
-                Declare!
+                Declare
               </button>
-            )}
+            </div>
           </>
+        )}
+
+        {!isMyTurn && !gameState.ended && (
+          <div className="waiting-turn">
+            Waiting for {currentPlayer?.username}'s turn...
+          </div>
         )}
 
         {gameState.ended && (
           <div className="game-ended">
-            <h3>Game Ended!</h3>
+            <h3>Round Over</h3>
             {gameState.declaredByUserId && (
               <p>
                 {gameState.players.find((p) => p.userId === gameState.declaredByUserId)
-                  ?.username}{' '}
-                declared!
+                  ?.username} declared!
               </p>
             )}
           </div>

@@ -36,11 +36,16 @@ export function PlayerHand({
           {player.username}
           {isCurrentPlayer && <span className="turn-indicator">▶</span>}
         </span>
-        <span className="player-score">Score: {player.total}</span>
-        {player.cumulativeScore > 0 && (
-          <span className="cumulative-score">Total: {player.cumulativeScore}</span>
+        {isMyHand && (
+          <>
+            <span className="player-score">Score: {player.total}</span>
+            {player.cumulativeScore > 0 && (
+              <span className="cumulative-score">Total: {player.cumulativeScore}</span>
+            )}
+          </>
         )}
-        {player.eliminated && <span className="eliminated">ELIMINATED</span>}
+        {isMyHand && player.eliminated && <span className="eliminated">ELIMINATED</span>}
+        {!isMyHand && <span className="card-count">{cardCount} cards</span>}
       </div>
       <div className="hand-cards">
         {isMyHand

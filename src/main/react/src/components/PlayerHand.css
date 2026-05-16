@@ -49,6 +49,11 @@
   font-weight: bold;
 }
 
+.card-count {
+  font-size: 13px;
+  color: #999;
+}
+
 .hand-cards {
   display: flex;
   gap: 4px;
