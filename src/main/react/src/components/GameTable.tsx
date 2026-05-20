@@ -33,7 +33,7 @@ export function GameTable({
     if (!canSelectCards) return;
     setSelectedIndices((prev) => {
       if (prev.includes(index)) return prev.filter((i) => i !== index);
-      if (ctrlKey || prev.length >= 2) return [...prev, index];
+      if (ctrlKey || prev.length >= 1) return [...prev, index];
       return [index];
     });
   };

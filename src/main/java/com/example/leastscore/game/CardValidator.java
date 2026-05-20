@@ -52,7 +52,7 @@ public class CardValidator {
     } else if (count == 5) {
       return validateSequence(cards);
     } else {
-      return ValidationResult.invalid("Can discard 1 card, a pair (2), or a sequence of 3/5 consecutive same-suit cards");
+      return ValidationResult.invalid("Can discard 1 card, a pair (2), or a sequence of 3/5 consecutive cards");
     }
   }
 
