@@ -18,7 +18,9 @@ export function useGame(roomCode: string, userId: number | null) {
       if (myPlayer) {
         myPlayer.hand = cards;
       }
-    } catch {}
+    } catch (e) {
+      console.error('Failed to fetch hand:', e);
+    }
     return state;
   }, [roomCode, userId]);
 
@@ -107,6 +109,22 @@ export function useGame(roomCode: string, userId: number | null) {
     }
   }, [roomCode, fetchAndMergeHand]);
 
+  const startNewGame = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const newState = await gameApi.startNewGame(roomCode);
+      await fetchAndMergeHand(newState);
+      setGameState(newState);
+      return newState;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [roomCode, fetchAndMergeHand]);
+
   return {
     gameState,
     loading,
@@ -115,5 +133,6 @@ export function useGame(roomCode: string, userId: number | null) {
     takeTurn,
     declare,
     startNextRound,
+    startNewGame,
   };
 }

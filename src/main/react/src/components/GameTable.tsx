@@ -59,7 +59,11 @@ export function GameTable({
   const handleDeclare = async () => {
     if (!isMyTurn || gameState.ended) return;
     if (selectedIndices.length > 0 || selectedSource !== null) return;
-    await onDeclare();
+    try {
+      await onDeclare();
+    } catch (err) {
+      console.error('Declare failed:', err);
+    }
   };
 
   const canMove = isMyTurn && !gameState.ended && selectedSource !== null && selectedIndices.length > 0 && !loading;

@@ -64,6 +64,7 @@ public class RoomController {
     long userId = requireUser(session);
     var game = gameService.startGame(roomCode, userId);
     broadcaster.broadcastState(roomCode, gameService.getState(roomCode));
+    broadcaster.broadcastRoomState(roomCode, gameService.getRoomInfo(roomCode));
     return ResponseEntity.ok(new StartResponse(game.getId(), roomCode));
   }
 
@@ -87,6 +88,16 @@ public class RoomController {
     long userId = requireUser(session);
     var state = gameService.declare(roomCode, userId);
     broadcaster.broadcastState(roomCode, state);
+    broadcaster.broadcastRoomState(roomCode, gameService.getRoomInfo(roomCode));
+    return ResponseEntity.ok(gameService.sanitizeForPublic(state, userId));
+  }
+
+  @PostMapping("/{roomCode}/new-game")
+  public ResponseEntity<?> newGame(@PathVariable @NotBlank String roomCode, HttpSession session) {
+    long userId = requireUser(session);
+    var state = gameService.startNewGame(roomCode, userId);
+    broadcaster.broadcastState(roomCode, state);
+    broadcaster.broadcastRoomState(roomCode, gameService.getRoomInfo(roomCode));
     return ResponseEntity.ok(gameService.sanitizeForPublic(state, userId));
   }
 

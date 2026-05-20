@@ -18,7 +18,7 @@ function App() {
   const [needsUsername, setNeedsUsername] = useState(false);
   const [initializing, setInitializing] = useState(true);
 
-  const { gameState, takeTurn, declare, startNextRound, refreshState } = useGame(
+  const { gameState, takeTurn, declare, startNextRound, startNewGame, refreshState, error: gameError } = useGame(
     roomCode || '',
     userId
   );
@@ -147,6 +147,19 @@ function App() {
     }
   };
 
+  const handleStartNewGame = async () => {
+    if (!roomCode) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await startNewGame();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (initializing) {
     return (
       <div className="app loading">
@@ -230,25 +243,34 @@ function App() {
     );
   }
 
-  if (gameState && (gameState.status === 'ROUND_ENDED' || gameState.status === 'GAME_OVER')) {
+  const gameStatus = gameState?.status;
+  const isScorePage = gameStatus === 'ROUND_ENDED' || gameStatus === 'GAME_OVER' || (gameState && gameState.ended);
+  const isLobby = gameStatus === 'LOBBY' || (!gameState && roomInfo?.status === 'LOBBY');
+  const isGame = gameState && gameStatus === 'IN_GAME' && !gameState.ended;
+
+  if (isScorePage) {
+    const allPlayers = [...gameState!.players, ...gameState!.eliminatedPlayers].sort(
+      (a, b) => a.cumulativeScore - b.cumulativeScore
+    );
+    const winner = allPlayers[0];
+    const isGameOver = gameStatus === 'GAME_OVER';
+
     return (
       <div className="app">
         <div className="round-ended">
-          <h2>{gameState.status === 'GAME_OVER' ? 'Game Over!' : 'Round Ended!'}</h2>
+          <h2>{isGameOver ? 'Game Over!' : 'Round Ended!'}</h2>
           <div className="scores">
             <h3>Scores</h3>
-            {[...gameState.players, ...gameState.eliminatedPlayers]
-              .sort((a, b) => a.cumulativeScore - b.cumulativeScore)
-              .map((player, i) => (
-                <div key={player.userId} className={`score-row ${i === 0 ? 'winner' : ''} ${player.eliminated ? 'eliminated' : ''}`}>
-                  <span className="score-rank">#{i + 1}</span>
-                  <span className="score-name">{player.username}</span>
-                  <span className="score-hand">Hand: {player.total}</span>
-                  <span className="score-total">Total: {player.cumulativeScore}</span>
-                </div>
-              ))}
+            {allPlayers.map((player, i) => (
+              <div key={player.userId} className={`score-row ${i === 0 ? 'winner' : ''} ${player.eliminated ? 'eliminated' : ''}`}>
+                <span className="score-rank">#{i + 1}</span>
+                <span className="score-name">{player.username}</span>
+                <span className="score-hand">Hand: {player.total}</span>
+                <span className="score-total">Total: {player.cumulativeScore}</span>
+              </div>
+            ))}
           </div>
-          {gameState.status === 'ROUND_ENDED' && (
+          {!isGameOver && (
             <button
               className="btn btn-primary"
               onClick={handleStartNextRound}
@@ -257,49 +279,39 @@ function App() {
               {loading ? 'Starting...' : 'Start Next Round'}
             </button>
           )}
-          {gameState.status === 'GAME_OVER' && (
+          {isGameOver && (
             <div className="game-over">
               <h3>Final Scores</h3>
-              {(() => {
-                const allPlayers = [...gameState.players, ...gameState.eliminatedPlayers].sort(
-                  (a, b) => a.cumulativeScore - b.cumulativeScore
-                );
-                const winner = allPlayers[0];
-                return (
-                  <>
-                    <div className="winner-banner">
-                      <span className="winner-emoji">🏆</span>
-                      <span className="winner-name">{winner.username}</span>
-                      <span className="winner-score">{winner.cumulativeScore} pts</span>
-                    </div>
-                    <div className="final-standings">
-                      {allPlayers.map((p, i) => (
-                        <div key={p.userId} className={`final-row ${i === 0 ? 'winner' : ''} ${p.eliminated ? 'eliminated' : ''}`}>
-                          <span className="final-rank">#{i + 1}</span>
-                          <span className="final-name">{p.username}</span>
-                          <span className="final-score">{p.cumulativeScore}</span>
-                          {p.eliminated && <span className="final-badge">ELIMINATED</span>}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="game-over-buttons">
-                      <button
-                        className="btn btn-primary"
-                        onClick={handleStartGame}
-                        disabled={loading}
-                      >
-                        {loading ? 'Starting...' : 'Play Again'}
-                      </button>
-                      <button
-                        className="btn btn-secondary"
-                        onClick={() => { setRoomCode(null); window.history.pushState({}, '', '/'); }}
-                      >
-                        New Room
-                      </button>
-                    </div>
-                  </>
-                );
-              })()}
+              <div className="winner-banner">
+                <span className="winner-name">{winner.username}</span>
+                <span className="winner-score">{winner.cumulativeScore} pts</span>
+              </div>
+              <div className="final-standings">
+                {allPlayers.map((p, i) => (
+                  <div key={p.userId} className={`final-row ${i === 0 ? 'winner' : ''} ${p.eliminated ? 'eliminated' : ''}`}>
+                    <span className="final-rank">#{i + 1}</span>
+                    <span className="final-name">{p.username}</span>
+                    <span className="final-score">{p.cumulativeScore}</span>
+                    {p.eliminated && <span className="final-badge">ELIMINATED</span>}
+                  </div>
+                ))}
+              </div>
+              <div className="game-over-buttons">
+                <button
+                  className="btn btn-primary"
+                  onClick={handleStartNewGame}
+                  disabled={loading}
+                >
+                  {loading ? 'Starting...' : 'Start New Game'}
+                </button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => { setRoomCode(null); window.history.pushState({}, '', '/'); }}
+                >
+                  Leave
+                </button>
+              </div>
+              {error && <div className="error-message">{error}</div>}
             </div>
           )}
         </div>
@@ -307,7 +319,7 @@ function App() {
     );
   }
 
-  if (roomInfo?.status === 'LOBBY') {
+  if (isLobby) {
     return (
       <div className="app">
         <Lobby
@@ -316,26 +328,26 @@ function App() {
           onStartGame={handleStartGame}
           loading={loading}
         />
-        {error && <div className="error-message">{error}</div>}
+        {(error || gameError) && <div className="error-message">{error || gameError}</div>}
       </div>
     );
   }
 
-  if (gameState) {
+  if (isGame) {
     return (
       <div className="app">
         <div className="game-header">
           <span>Room: {roomCode}</span>
-          <span>Round: {gameState.roundNumber}</span>
+          <span>Round: {gameState!.roundNumber}</span>
         </div>
         <GameTable
-          gameState={gameState}
+          gameState={gameState!}
           userId={userId}
           onTakeTurn={takeTurn}
           onDeclare={declare}
           loading={loading}
         />
-        {error && <div className="error-message">{error}</div>}
+        {(error || gameError) && <div className="error-message">{error || gameError}</div>}
       </div>
     );
   }
@@ -343,6 +355,7 @@ function App() {
   return (
     <div className="app loading">
       <p>Loading game...</p>
+      {gameError && <div className="error-message">{gameError}</div>}
     </div>
   );
 }

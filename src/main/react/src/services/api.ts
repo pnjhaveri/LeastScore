@@ -44,6 +44,9 @@ export const gameApi = {
   declare: (roomCode: string) =>
     api<GameState>(`/rooms/${roomCode}/declare`, { method: 'POST' }),
 
+  startNewGame: (roomCode: string) =>
+    api<GameState>(`/rooms/${roomCode}/new-game`, { method: 'POST' }),
+
   startNextRound: (roomCode: string) =>
     api<GameState>(`/rooms/${roomCode}/next-round`, { method: 'POST' }),
 

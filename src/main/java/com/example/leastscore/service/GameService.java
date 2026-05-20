@@ -169,6 +169,80 @@ public class GameService {
     return game;
   }
 
+  @Transactional
+  public GameState startNewGame(String roomCode, long userId) {
+    RoomEntity room = roomRepository.findByRoomCode(roomCode)
+        .orElseThrow(() -> new IllegalArgumentException("room not found"));
+
+    List<RoomPlayerEntity> allRoomPlayers = roomPlayerRepository.findByRoomIdOrderBySeatIndexAsc(room.getId());
+    if (allRoomPlayers.stream().noneMatch(p -> p.getUserId() == userId)) {
+      throw new IllegalStateException("must join room first");
+    }
+
+    GameEntity lastGame = gameRepository.findFirstByRoomIdOrderByStartedAtDesc(room.getId()).orElse(null);
+
+    java.util.Set<Long> excludedUserIds = new java.util.HashSet<>();
+    if (lastGame != null) {
+      GameState lastState = readState(lastGame.getStateJson());
+      for (PlayerState ep : lastState.getEliminatedPlayers()) {
+        excludedUserIds.add(ep.getUserId());
+      }
+      for (PlayerState p : lastState.getPlayers()) {
+        if (p.getCumulativeScore() >= ELIMINATION_THRESHOLD) {
+          excludedUserIds.add(p.getUserId());
+        }
+      }
+    }
+
+    List<RoomPlayerEntity> eligiblePlayers = allRoomPlayers.stream()
+        .filter(rp -> !excludedUserIds.contains(rp.getUserId()))
+        .toList();
+
+    if (eligiblePlayers.size() < MIN_PLAYERS) {
+      throw new IllegalStateException("Not enough eligible players to start a new game. Players with 100+ points are excluded.");
+    }
+
+    GameState state = new GameState();
+    state.setRoomCode(roomCode);
+
+    List<Card> deck = createDeck();
+    Collections.shuffle(deck);
+    state.getDeck().addAll(deck);
+
+    for (RoomPlayerEntity rp : eligiblePlayers) {
+      UserEntity u = userRepository.findById(rp.getUserId()).orElseThrow();
+      PlayerState ps = new PlayerState(u.getId(), u.getUsername());
+      ps.setCumulativeScore(0);
+      for (int i = 0; i < HAND_SIZE; i++) {
+        ps.getHand().add(draw(state));
+      }
+      ps.setTotal(calculateScore(ps.getHand()));
+      state.getPlayers().add(ps);
+    }
+
+    state.setOpenCard(draw(state));
+    state.setCurrentTurnIndex(0);
+    state.setTurnsInRound(0);
+    state.setRoundNumber(1);
+
+    var game = new GameEntity();
+    game.setRoomId(room.getId());
+    game.setStateJson(writeState(state));
+    game.setCurrentTurnUserId(state.getPlayers().get(0).getUserId());
+    game = gameRepository.save(game);
+
+    state.setGameId(game.getId());
+    game.setStateJson(writeState(state));
+    gameRepository.save(game);
+
+    room.setStatus("IN_GAME");
+    roomRepository.save(room);
+
+    recordMove(game.getId(), userId, MoveType.START, "{\"newGame\":true}");
+    upsertScores(game.getId(), state);
+    return state;
+  }
+
   private List<Card> createDeck() {
     List<Card> deck = new ArrayList<>();
     for (Card.Suit suit : Card.Suit.values()) {
@@ -509,6 +583,13 @@ public class GameService {
     pub.setRoundNumber(state.getRoundNumber());
     pub.setDeckSize(state.getDeck().size());
     pub.setTurnsInRound(state.getTurnsInRound());
+    try {
+      RoomEntity room = roomRepository.findByRoomCode(state.getRoomCode()).orElse(null);
+      if (room != null) {
+        pub.setStatus(room.getStatus());
+      }
+    } catch (Exception e) {
+    }
 
     for (PlayerState p : state.getPlayers()) {
       PlayerState sp = new PlayerState(p.getUserId(), p.getUsername());

@@ -31,6 +31,7 @@ export interface GameState {
   declaredByUserId: number | null;
   roundNumber: number;
   turnsInRound: number;
+  status?: 'LOBBY' | 'IN_GAME' | 'ROUND_ENDED' | 'GAME_OVER';
   moves: MoveEntry[];
 }
 

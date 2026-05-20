@@ -18,6 +18,7 @@ public class GameState {
   private int roundNumber = 1;
   private int deckSize;
   private int turnsInRound;
+  private String status;
   private List<MoveEntry> moves = new ArrayList<>();
 
   public static class MoveEntry {
@@ -138,6 +139,14 @@ public class GameState {
 
   public void setDeckSize(int deckSize) {
     this.deckSize = deckSize;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
   }
 }
 
